@@ -1,17 +1,20 @@
-import * as fs from 'fs-extra';
-import * as json5 from 'json5';
 import * as path from 'path';
-import {validateConfig} from '../models/config';
 
+import {getConfig} from '../models/config';
+import {getMarkdownFiles} from '../models/markdown-files';
 import {logger} from '../utils/logger';
 
-export class SiteGenerator {
-  build(configPath: any) {
-    const rawConfig = this.readConfig(configPath);
 
-    const config = validateConfig(rawConfig);
+export class SiteGenerator {
+  async build(configPath: string|null) {
+    const config = await getConfig(configPath);
+    logger.log('🔧 Config......');
+    logger.log(`    📓 Content : ${path.relative(process.cwd(), config.contentPath)}`);
+    logger.log(`    📦 Output  : ${path.relative(process.cwd(), config.contentPath)}`);
 
     // Find all files
+    const mdFiles = await getMarkdownFiles(config);
+    logger.log(`🔍 Found ${mdFiles.length} markdown files.`);
 
     // Worker Pool Start
         
@@ -24,18 +27,5 @@ export class SiteGenerator {
         // Process template
 
     // Fin.
-  }
-
-  // Find and read config
-  private async readConfig(configPath: any): Promise<any> {
-    const resolvedPath = path.resolve(configPath);
-    try {
-      await fs.access(resolvedPath);
-    } catch(err) {
-      throw new Error(`Unable to access config path: ${configPath}.`)
-    }
-    const configBuffer = await fs.readFile(resolvedPath);
-    const configContents = configBuffer.toString();
-    return json5.parse(configContents);
   }
 }
