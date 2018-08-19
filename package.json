@@ -22,9 +22,17 @@
       "build/test/**/*"
     ]
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "gulp": "^4.0.0",
+    "@hopin/wbt-ts-node": "0.0.2",
+  },
   "dependencies": {
-    "@hopin/logger": "0.0.4"
+    "@hopin/logger": "0.0.4",
+    "@types/fs-extra": "^5.0.4",
+    "@types/json5": "0.0.29",
+    "chalk": "^2.4.1",
+    "fs-extra": "^7.0.0",
+    "json5": "^2.0.1"
   },
   "keywords": [
     "hopin",
