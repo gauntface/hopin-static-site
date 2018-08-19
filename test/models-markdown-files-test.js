@@ -1,5 +1,7 @@
 import test from 'ava';
 import * as path from 'path';
+import * as fs from 'fs-extra';
+import * as os from 'os';
 
 import {getMarkdownFiles} from '../build/models/markdown-files';
 
@@ -17,8 +19,9 @@ test('getMarkdownFiles() should throw for non-existant path', async (t) => {
 });
 
 test('getMarkdownFiles() should return no files for empty directory', async (t) => {
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hopin-static-site-gen'))
   const files = await getMarkdownFiles({
-    contentPath: path.join(projectsPath, 'empty-project'),
+    contentPath: tmpDir,
     markdownExtension: 'md',
   });
   t.deepEqual(files, []);
