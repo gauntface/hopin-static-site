@@ -3,6 +3,7 @@ import * as path from 'path';
 import {getConfig} from '../models/config';
 import {getMarkdownFiles} from '../models/markdown-files';
 import {logger} from '../utils/logger';
+import {WorkerPool} from './worker-pool';
 
 
 export class SiteGenerator {
@@ -17,6 +18,8 @@ export class SiteGenerator {
     logger.log(`🔍 Found ${mdFiles.length} markdown files.`);
 
     // Worker Pool Start
+    const workerPool = new WorkerPool(10, mdFiles);
+    await workerPool.start(path.join(__dirname, 'file-processor.js'));
         
         // Read file
 
