@@ -1,4 +1,10 @@
 import {fork, ChildProcess} from 'child_process';
+import {logger} from '../utils/logger';
+
+export type Message =  {
+    result?: string
+    error?: string
+}
 
 export class WorkerPool {
     private numOfWorkers: number
@@ -15,16 +21,24 @@ export class WorkerPool {
         this.processCount = 0;
     }
 
-    async start(processName: string): Promise<{[key:string]: string}> {
-        const jobResults: {[key:string]: string} = {};
+    async start(processName: string): Promise<{[key:string]: string|Error}> {
+        const jobResults: {[key:string]: string|Error} = {};
+        const errors: {[key:string]: Error} = {};
         
         const promises: Array<Promise<void>> = [];
         for (let i = 0; i < this.jobs.length; i++) {
             await this.getFreeSpot();
             this.processCount++;
             const job = this.jobs[i];
-            promises.push(this.runWorker(processName, job, (result) => {
-                jobResults[job] = result;
+            promises.push(this.runWorker(processName, job, (msg: Message) => {
+                if (msg.result) {
+                    jobResults[job] = msg.result;
+                } else if (msg.error) {
+                    jobResults[job] = new Error(msg.error);
+                } else {
+                    logger.error(`Unkown worker pool message: ${msg}`)
+                }
+                
                 this.processCount--;
             }));
         }
@@ -48,11 +62,11 @@ export class WorkerPool {
         }
     }
 
-    private async runWorker(processName: string, job: string, cb: (result: string) => void): Promise<void> {
+    private async runWorker(processName: string, job: string, cb: (msg: Message) => void): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const forkedProcess = fork(processName, [job]);
-            forkedProcess.on('message', (result: string) => {
-                cb(result);
+            forkedProcess.on('message', (msg: Message) => {
+                cb(msg);
                 resolve();
             });
         });

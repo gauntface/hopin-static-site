@@ -6,12 +6,14 @@ export type Config = {
   contentPath: string
   outputPath: string
   markdownExtension: string
+  workPoolSize: number
 }
 
 const CONFIG_DEFAULTS:Config = {
   contentPath: path.join(process.cwd(), 'content', path.sep),
   outputPath: path.join(process.cwd(), 'build', path.sep),
   markdownExtension: 'md',
+  workPoolSize: 10,
 };
 
 // Takes a parsed json config file and validates it's contents

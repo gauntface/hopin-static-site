@@ -18,16 +18,8 @@ export class SiteGenerator {
     logger.log(`🔍 Found ${mdFiles.length} markdown files.`);
 
     // Worker Pool Start
-    const workerPool = new WorkerPool(10, mdFiles);
+    const workerPool = new WorkerPool(config.workPoolSize, mdFiles);
     await workerPool.start(path.join(__dirname, 'file-processor.js'));
-        
-        // Read file
-
-        // Parse yaml
-
-        // Process markdown
-
-        // Process template
 
     // Fin.
   }

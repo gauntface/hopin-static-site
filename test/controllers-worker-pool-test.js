@@ -24,11 +24,25 @@ test('new WorkerPool() should process a single file', async (t) => {
     });
 });
 
-test('new WorkerPool() should process a single file', async (t) => {
+test('new WorkerPool() should process multiple files on single pool', async (t) => {
     const pool = new WorkerPool(1, ['example-1', 'example-2']);
     const results = await pool.start(path.join(processorsPath, 'second-delay.js'));
     t.deepEqual(results, {
         'example-1': 'second-delay-example-1',
         'example-2': 'second-delay-example-2',
     });
+});
+
+test('new WorkerPool() should handle errors', async (t) => {
+    const pool = new WorkerPool(1, ['example-1']);
+    const results = await pool.start(path.join(processorsPath, 'error.js'));
+    t.deepEqual(results, {
+        'example-1': new Error('Example error'),
+    });
+});
+
+test('new WorkerPool() should handle unknown value', async (t) => {
+    const pool = new WorkerPool(1, ['example-1']);
+    const results = await pool.start(path.join(processorsPath, 'unknown.js'));
+    t.deepEqual(results, {});
 });

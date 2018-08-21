@@ -2,4 +2,5 @@
   "contentPath": "./custom-content-path/",
   "outputPath": "./custom-output-path/",
   "markdownExtension": "markdown",
+  "workPoolSize": 20,
 }
