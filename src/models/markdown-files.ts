@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import {glob} from '../utils/promise-glob';
+import {glob} from '../utils/glob-promise';
 import {Config} from './config';
 
 export async function getMarkdownFiles(config: Config): Promise<Array<string>> {

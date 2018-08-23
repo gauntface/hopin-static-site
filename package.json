@@ -19,7 +19,7 @@
       "html"
     ],
     "exclude": [
-      "**/utils/promise-glob.*",
+      "**/utils/glob-promise.*",
       "test/**/*"
     ]
   },
