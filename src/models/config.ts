@@ -2,11 +2,20 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as json5 from 'json5';
 
+import {Token} from '@hopin/markdown';
+
+export type Style = {
+  inline?: string
+  sync?: string
+  async?: string
+}
+
 export type Config = {
   contentPath: string
   outputPath: string
   markdownExtension: string
   workPoolSize: number
+  tokenStyles: {[key: Token]: Style}
 }
 
 const CONFIG_DEFAULTS:Config = {
