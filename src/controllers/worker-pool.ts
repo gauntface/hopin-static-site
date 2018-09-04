@@ -1,5 +1,6 @@
 import {fork, ChildProcess} from 'child_process';
 import {logger} from '../utils/logger';
+import { Config } from '../models/config';
 
 export type Message =  {
     result?: string
@@ -7,16 +8,16 @@ export type Message =  {
 }
 
 export class WorkerPool {
-    private numOfWorkers: number
+    private config: Config
     private jobs: Array<string>
     private processCount: number
 
-    constructor(numOfWorkers: number, jobs: Array<string>) {
-        if (numOfWorkers <= 0) {
+    constructor(config: Config, jobs: Array<string>) {
+        if (config.workPoolSize <= 0) {
             throw new Error('You must provide a worker pool count of > 0');
         }
         
-        this.numOfWorkers = numOfWorkers;
+        this.config = config;
         this.jobs = jobs;
         this.processCount = 0;
     }
@@ -51,7 +52,7 @@ export class WorkerPool {
     private async getFreeSpot(): Promise<void> {
         let wait = true;
         while(wait) {
-            if (this.processCount < this.numOfWorkers) {
+            if (this.processCount < this.config.workPoolSize) {
                 wait = false;
                 continue;
             }
@@ -65,6 +66,10 @@ export class WorkerPool {
     private async runWorker(processName: string, job: string, cb: (msg: Message) => void): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const forkedProcess = fork(processName, [job]);
+            forkedProcess.send({
+                name: 'run-with-config',
+                config: this.config,
+            });
             forkedProcess.on('message', (msg: Message) => {
                 cb(msg);
                 resolve();

@@ -18,7 +18,7 @@ export class SiteGenerator {
     logger.log(`🔍 Found ${mdFiles.length} markdown files.`);
 
     // Worker Pool Start
-    const workerPool = new WorkerPool(config.workPoolSize, mdFiles);
+    const workerPool = new WorkerPool(config, mdFiles);
     await workerPool.start(path.join(__dirname, 'file-processor.js'));
 
     // Fin.

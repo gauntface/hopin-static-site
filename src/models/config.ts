@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as json5 from 'json5';
+import { DEFAULT_CONFIG } from 'tslint/lib/configuration';
 
 export type Style = {
   inline?: string
@@ -13,7 +14,11 @@ export type Config = {
   outputPath: string
   markdownExtension: string
   workPoolSize: number
-  tokenStyles: {[key: string]: Style}
+  tokenAssets: {
+    [key: string]: {
+      styles: Style,
+    }
+  }
 }
 
 const CONFIG_DEFAULTS:Config = {
@@ -21,11 +26,11 @@ const CONFIG_DEFAULTS:Config = {
   outputPath: path.join(process.cwd(), 'build', path.sep),
   markdownExtension: 'md',
   workPoolSize: 10,
-  tokenStyles: {},
+  tokenAssets: {},
 };
 
 // Takes a parsed json config file and validates it's contents
-function validateConfig(config: any, configPath: string): Config {
+async function validateConfig(config: any, configPath: string): Promise<Config> {
   if (typeof config != 'object' || Array.isArray(config)) {
     throw new Error(`Invalid Config, expected an object. Parsed config is: ${JSON.stringify(config)}`)
   }
@@ -41,6 +46,18 @@ function validateConfig(config: any, configPath: string): Config {
       config[field] = path.join(config[field], path.sep);
     }
   }
+
+  
+  if (config.tokenAssets) {
+    for (const t of Object.keys(config.tokenAssets)) {
+      const asset = config.tokenAssets[t];
+      if (asset.styles && asset.styles.inline) {
+        const absPath = path.resolve(path.dirname(configPath), asset.styles.inline);
+        const buffer = await fs.readFile(absPath);
+        config.tokenAssets[t].styles.inline = buffer.toString();
+      }
+    }
+  }
   
   // Merge defaults with config
   return  Object.assign({}, CONFIG_DEFAULTS, config);
@@ -51,9 +68,11 @@ async function readConfig(configPath: string|null): Promise<Config> {
   const resolvedPath = path.resolve(configPath);
   try {
     await fs.access(resolvedPath);
+    
   } catch(err) {
     throw new Error(`Unable to access config path: ${configPath}.`)
   }
+  
   const configBuffer = await fs.readFile(resolvedPath);
   const configContents = configBuffer.toString();
   try {
@@ -64,9 +83,14 @@ async function readConfig(configPath: string|null): Promise<Config> {
 }
 
 export async function getConfig(configPath: string|null): Promise<Config> {
+  if (!configPath) {
+    return Object.assign({}, CONFIG_DEFAULTS);
+  }
+
   let userConfig = {};
   if (configPath) {
     userConfig = await readConfig(configPath);
   }
+
   return validateConfig(userConfig, configPath);
 }
