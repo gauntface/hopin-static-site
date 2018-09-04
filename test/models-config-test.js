@@ -36,6 +36,7 @@ test('getConfig() should handle a null config path and return a valid config obj
 		outputPath: path.join(process.cwd(), 'build', path.sep),
 		markdownExtension: 'md',
 		workPoolSize: 10,
+		tokenStyles: {},
 	});
 });
 
@@ -46,6 +47,7 @@ test('getConfig() should parse, validate and return a valid config object using 
 		outputPath: path.join(process.cwd(), 'build', path.sep),
 		markdownExtension: 'md',
 		workPoolSize: 10,
+		tokenStyles: {},
 	});
 });
 
@@ -56,5 +58,12 @@ test('getConfig() should parse, validate and return a valid config object using 
 		outputPath: path.join(configsPath, 'custom-output-path', path.sep),
 		markdownExtension: 'markdown',
 		workPoolSize: 20,
+		tokenStyles: {
+			h1: {
+				async: '../styles/async.css',
+				inline: '../styles/inline.css',
+				sync: '../styles/sync.css',
+			},
+		},
 	});
 });

@@ -28,9 +28,7 @@ test('file-processor.start() should return error message for non-existant file',
 
 test('file-processor.start() should render file contents for valid file', async (t) => {
     const msg = await start(['', '', path.join(projectFilesPath, 'index.md'), path.join(projectFilesPath, 'templates', 'default.tmpl')]);
-    if (msg.error) {
-        console.error(msg);
-    }
+    t.falsy(msg.error);
     t.deepEqual(Object.keys(msg), ['result'])
     t.deepEqual(msg.result, `<html class="default">
 <style>.inline{}</style>

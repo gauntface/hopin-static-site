@@ -3,4 +3,11 @@
   "outputPath": "./custom-output-path/",
   "markdownExtension": "markdown",
   "workPoolSize": 20,
+  "tokenStyles": {
+    "h1": {
+      "inline": "../styles/inline.css",
+      "sync": "../styles/sync.css",
+      "async": "../styles/async.css",
+    },
+  },
 }
