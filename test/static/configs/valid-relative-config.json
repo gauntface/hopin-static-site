@@ -1,6 +1,16 @@
 {
   "contentPath": "./custom-content-path/",
   "outputPath": "./custom-output-path/",
+  "defaultHTMLTmpl": "default.tmpl",
   "markdownExtension": "markdown",
   "workPoolSize": 20,
+  "tokenAssets": {
+    "h1": {
+      "styles": {
+        "inline": "../projects/valid-project/styles/inline.css",
+        "sync": "/styles/sync.css",
+        "async": "/styles/async.css",
+      },
+    },
+  },
 }
