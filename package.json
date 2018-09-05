@@ -38,7 +38,7 @@
     "tslint": "^5.11.0"
   },
   "dependencies": {
-    "@hopin/markdown": "0.0.2",
+    "@hopin/markdown": "0.0.3",
     "@hopin/render": "^3.0.2",
     "chalk": "^2.4.1",
     "fs-extra": "^7.0.0",
