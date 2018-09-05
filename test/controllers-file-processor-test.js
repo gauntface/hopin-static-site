@@ -6,7 +6,8 @@ import * as os from 'os';
 import {getMarkdownFiles} from '../build/models/markdown-files';
 import { start } from '../build/controllers/file-processor';
 
-const projectFilesPath = path.join(__dirname, 'static', 'projects', 'valid-project');
+const projectFilePath = path.join(__dirname, 'static', 'projects', 'valid-project');
+const contentFilesPath = path.join(projectFilePath, 'content');
 
 test('file-processor.start() should return error for too few values', async (t) => {
     const msg = await start(['', '']);
@@ -15,19 +16,18 @@ test('file-processor.start() should return error for too few values', async (t) 
 });
 
 test('file-processor.start() should return error message for non-existant file', async (t) => {
-    const msg = await start(['', '', path.join(projectFilesPath, 'non-existant-file'), path.join(projectFilesPath, 'valid-wrapping-file.tmpl')]);
-    t.deepEqual(Object.keys(msg), ['error'])
-    t.true(msg.error.indexOf('Unable to read and parse: ') === 0);
-});
-
-test('file-processor.start() should return error message for non-existant file', async (t) => {
-    const msg = await start(['', '', path.join(projectFilesPath, 'index.md'), path.join(projectFilesPath, 'non-existant-file')]);
+    const msg = await start(['', '', path.join(contentFilesPath, 'non-existant-file')]);
     t.deepEqual(Object.keys(msg), ['error'])
     t.true(msg.error.indexOf('Unable to read and parse: ') === 0);
 });
 
 test('file-processor.start() should render file contents for valid file', async (t) => {
-    const msg = await start(['', '', path.join(projectFilesPath, 'index.md'), path.join(projectFilesPath, 'templates', 'default.tmpl')], {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'file-processor-test'));
+    const inputPath = path.join(contentFilesPath, 'index.md');
+    const msg = await start(['', '', inputPath], {
+        contentPath: contentFilesPath,
+        outputPath: tmpDir, 
+        defaultHTMLTmpl: path.join(projectFilePath, 'templates', 'default.tmpl'),
         tokenAssets: {
             h1: {
                 styles: {
@@ -40,7 +40,12 @@ test('file-processor.start() should render file contents for valid file', async 
     });
     t.falsy(msg.error);
     t.deepEqual(Object.keys(msg), ['result'])
-    t.deepEqual(msg.result, `<html class="default">
+    t.deepEqual(msg.result, {
+        inputPath: inputPath,
+        outputPath: path.join(tmpDir, 'index.md'),
+    });
+    const buffer = await fs.readFile(msg.result.outputPath);
+    t.deepEqual(buffer.toString(), `<html class="default">
 <style>.inline{}</style>
 <style>.index-inline{}</style>
 <style>.h1-inline{}</style>

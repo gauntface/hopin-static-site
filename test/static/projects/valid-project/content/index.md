@@ -2,14 +2,14 @@
 example: 'example yaml'
 styles:
   inline:
-    - ./styles/index-inline.css
+    - ../styles/index-inline.css
   sync:
     - /styles/index-sync.css
   async:
     - /styles/index-async.css
 scripts:
   inline:
-    - ./scripts/index-inline.js
+    - ../scripts/index-inline.js
   sync:
     - /scripts/index-sync.js
   async:

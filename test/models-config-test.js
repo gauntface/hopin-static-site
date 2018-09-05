@@ -7,7 +7,7 @@ const configsPath = path.join(__dirname, 'static', 'configs');
 
 test('getConfig() should throw for non-existant file', async (t) => {
 	try {
-		await getConfig('non-existant-file');
+		await getConfig('.', 'non-existant-file');
 	} catch (err) {
 		t.deepEqual(err.message, 'Unable to access config path: non-existant-file.');
 	}
@@ -15,7 +15,7 @@ test('getConfig() should throw for non-existant file', async (t) => {
 
 test('getConfig() should throw for bad json file', async (t) => {
 	try {
-		await getConfig(path.join(configsPath, 'invalid-json.json'));
+		await getConfig(configsPath, path.join(configsPath, 'invalid-json.json'));
 	} catch (err) {
 		t.true(err.message.indexOf('Unable to parse the config file:') === 0);
 	}
@@ -23,17 +23,19 @@ test('getConfig() should throw for bad json file', async (t) => {
 
 test('getConfig() should throw for an array json file', async (t) => {
 	try {
-		await getConfig(path.join(configsPath, 'array.json'));
+		await getConfig(configsPath, path.join(configsPath, 'array.json'));
 	} catch (err) {
 		t.deepEqual(err.message, 'Invalid Config, expected an object. Parsed config is: []');
 	}
 });
 
 test('getConfig() should handle a null config path and return a valid config object using default values', async (t) => {
-	const config = await getConfig();
+	const buildDir = path.join(path.sep, 'example')
+	const config = await getConfig(buildDir);
 	t.deepEqual(config, {
-		contentPath: path.join(process.cwd(), 'content', path.sep),
-		outputPath: path.join(process.cwd(), 'build', path.sep),
+		contentPath: path.join(buildDir, 'content', path.sep),
+		outputPath: path.join(buildDir, 'build', path.sep),
+		defaultHTMLTmpl: path.join(__dirname, '..', 'build', 'assets', 'default.tmpl'),
 		markdownExtension: 'md',
 		workPoolSize: 10,
 		tokenAssets: {},
@@ -41,10 +43,12 @@ test('getConfig() should handle a null config path and return a valid config obj
 });
 
 test('getConfig() should parse, validate and return a valid config object using default values', async (t) => {
-	const config = await getConfig(path.join(configsPath, 'valid-empty-config.json'));
+	const buildDir = path.join(path.sep, 'example')
+	const config = await getConfig(buildDir, path.join(configsPath, 'valid-empty-config.json'));
 	t.deepEqual(config, {
-		contentPath: path.join(process.cwd(), 'content', path.sep),
-		outputPath: path.join(process.cwd(), 'build', path.sep),
+		contentPath: path.join(buildDir, 'content', path.sep),
+		outputPath: path.join(buildDir, 'build', path.sep),
+		defaultHTMLTmpl: path.join(__dirname, '..', 'build', 'assets', 'default.tmpl'),
 		markdownExtension: 'md',
 		workPoolSize: 10,
 		tokenAssets: {},
@@ -52,10 +56,12 @@ test('getConfig() should parse, validate and return a valid config object using 
 });
 
 test('getConfig() should parse, validate and return a valid config object using custom relative values', async (t) => {
-	const config = await getConfig(path.join(configsPath, 'valid-relative-config.json'));
+	const buildDir = path.join(path.sep, 'example')
+	const config = await getConfig(buildDir, path.join(configsPath, 'valid-relative-config.json'));
 	t.deepEqual(config, {
-		contentPath: path.join(configsPath, 'custom-content-path', path.sep),
-		outputPath: path.join(configsPath, 'custom-output-path', path.sep),
+		contentPath: path.join(configsPath, 'custom-content-path'),
+		outputPath: path.join(configsPath, 'custom-output-path'),
+		defaultHTMLTmpl: path.join(configsPath, 'default.tmpl'),
 		markdownExtension: 'markdown',
 		workPoolSize: 20,
 		tokenAssets: {

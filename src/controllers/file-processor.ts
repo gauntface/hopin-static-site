@@ -1,15 +1,18 @@
 import {createTemplateFromFile} from '@hopin/render';
 import {renderMarkdown} from '@hopin/markdown';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 
 import { Message } from './worker-pool';
 import { logger } from '../utils/logger';
 import { Config } from '../models/config';
 
-async function run(filePath: string, wrappingTmplPath: string, config: Config): Promise<Message> {
+async function run(inputPath: string, config: Config): Promise<Message> {
     // TODO: Check files exist first
     try {
-        const template = await createTemplateFromFile(filePath);
-        const wrappingTemplate = await createTemplateFromFile(wrappingTmplPath);
+        const template = await createTemplateFromFile(inputPath);
+        // TODO: Make this configurable in markdown file itself
+        const wrappingTemplate = await createTemplateFromFile(config.defaultHTMLTmpl);
 
         // Wrapping template will be the template that displays the styles etc
         // so copy template styles and scripts over
@@ -45,8 +48,17 @@ async function run(filePath: string, wrappingTmplPath: string, config: Config): 
         const wrappedHTML = await wrappingTemplate.render({
             content: markdownRender.html,
         });
+
+        const relativePath = path.relative(config.contentPath, inputPath);
+        const outputPath = path.join(config.outputPath, relativePath);
+        await fs.mkdirp(path.dirname(outputPath));
+        await fs.writeFile(outputPath, wrappedHTML);
+
         return {
-            result: wrappedHTML,
+            result: {
+                inputPath,
+                outputPath,
+            }
         };
     } catch (err) {
         return {
@@ -56,14 +68,14 @@ async function run(filePath: string, wrappingTmplPath: string, config: Config): 
 }
 
 export async function start(args: Array<string>, config: Config): Promise<Message> {
-    if (args.length != 4) {
+    if (args.length != 3) {
         logger.warn('Unexpected number of process args passed to file-processor: ', process.argv);
         return {
             error: `Unexpected number of process args: ${JSON.stringify(process.argv)}`,
         };
     }
 
-    return run(args[2], args[3], config);
+    return run(args[2], config);
 }
 
 let isRunning = false;

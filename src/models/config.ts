@@ -14,6 +14,7 @@ export type Config = {
   outputPath: string
   markdownExtension: string
   workPoolSize: number
+  defaultHTMLTmpl: string
   tokenAssets: {
     [key: string]: {
       styles: Style,
@@ -21,16 +22,19 @@ export type Config = {
   }
 }
 
-const CONFIG_DEFAULTS:Config = {
-  contentPath: path.join(process.cwd(), 'content', path.sep),
-  outputPath: path.join(process.cwd(), 'build', path.sep),
-  markdownExtension: 'md',
-  workPoolSize: 10,
-  tokenAssets: {},
-};
+function getDefaults(buildDir: string): Config {
+  return {
+    contentPath: path.join(buildDir, 'content', path.sep),
+    outputPath: path.join(buildDir, 'build', path.sep),
+    markdownExtension: 'md',
+    defaultHTMLTmpl: path.join(__dirname, '..', 'assets', 'default.tmpl'),
+    workPoolSize: 10,
+    tokenAssets: {},
+  };
+}
 
 // Takes a parsed json config file and validates it's contents
-async function validateConfig(config: any, configPath: string): Promise<Config> {
+async function validateConfig(config: any, buildDir: string, configPath: string): Promise<Config> {
   if (typeof config != 'object' || Array.isArray(config)) {
     throw new Error(`Invalid Config, expected an object. Parsed config is: ${JSON.stringify(config)}`)
   }
@@ -39,11 +43,11 @@ async function validateConfig(config: any, configPath: string): Promise<Config> 
   const fields = [
     'contentPath',
     'outputPath',
+    'defaultHTMLTmpl',
   ];
   for (const field of fields) {
     if (config[field]) {
       config[field] = path.resolve(path.dirname(configPath), config[field]);
-      config[field] = path.join(config[field], path.sep);
     }
   }
 
@@ -60,7 +64,7 @@ async function validateConfig(config: any, configPath: string): Promise<Config> 
   }
   
   // Merge defaults with config
-  return  Object.assign({}, CONFIG_DEFAULTS, config);
+  return  Object.assign({}, getDefaults(buildDir), config);
 }
 
 // Find and read config and validate it's contents
@@ -82,9 +86,9 @@ async function readConfig(configPath: string|null): Promise<Config> {
   }
 }
 
-export async function getConfig(configPath: string|null): Promise<Config> {
+export async function getConfig(buildDir: string, configPath: string|null): Promise<Config> {
   if (!configPath) {
-    return Object.assign({}, CONFIG_DEFAULTS);
+    return Object.assign({}, getDefaults(buildDir));
   }
 
   let userConfig = {};
@@ -92,5 +96,5 @@ export async function getConfig(configPath: string|null): Promise<Config> {
     userConfig = await readConfig(configPath);
   }
 
-  return validateConfig(userConfig, configPath);
+  return validateConfig(userConfig, buildDir, configPath);
 }

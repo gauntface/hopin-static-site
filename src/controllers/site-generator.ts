@@ -7,11 +7,12 @@ import {WorkerPool} from './worker-pool';
 
 
 export class SiteGenerator {
-  async build(configPath: string|null) {
-    const config = await getConfig(configPath);
+  async build(buildDir: string, configPath: string|null) {
+    const config = await getConfig(buildDir, configPath);
     logger.log('🔧 Config......');
-    logger.log(`    📓 Content : ${path.relative(process.cwd(), config.contentPath)}`);
-    logger.log(`    📦 Output  : ${path.relative(process.cwd(), config.contentPath)}`);
+    logger.log(`    🏗️ Building In : ${path.relative(process.cwd(), buildDir)}`);
+    logger.log(`    📓 Content     : ${path.relative(buildDir, config.contentPath)}`);
+    logger.log(`    📦 Output      : ${path.relative(buildDir, config.outputPath)}`);
 
     // Find all files
     const mdFiles = await getMarkdownFiles(config);
@@ -19,8 +20,17 @@ export class SiteGenerator {
 
     // Worker Pool Start
     const workerPool = new WorkerPool(config, mdFiles);
-    await workerPool.start(path.join(__dirname, 'file-processor.js'));
-
+    const results = await workerPool.start(path.join(__dirname, 'file-processor.js'));
+    let errors = [];
+    for (const key of Object.keys(results)) {
+      const result = results[key];
+      if (result instanceof Error) {
+        errors.push(result);
+      }
+    }
+    if (errors.length > 0) {
+      throw new Error(`${errors} errors occured:\n\n${errors.join('\n')}`);
+    }
     // Fin.
   }
 }

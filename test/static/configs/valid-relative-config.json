@@ -1,6 +1,7 @@
 {
   "contentPath": "./custom-content-path/",
   "outputPath": "./custom-output-path/",
+  "defaultHTMLTmpl": "default.tmpl",
   "markdownExtension": "markdown",
   "workPoolSize": 20,
   "tokenAssets": {

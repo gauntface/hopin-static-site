@@ -28,26 +28,26 @@ test('getMarkdownFiles() should return no files for empty directory', async (t) 
 });
 
 test('getMarkdownFiles() should return expected files valid directory', async (t) => {
-  const projectPath = path.join(projectsPath, 'valid-project');
+  const contentPath = path.join(projectsPath, 'valid-project', 'content');
   const files = await getMarkdownFiles({
-    contentPath: projectPath,
+    contentPath: contentPath,
     markdownExtension: 'md',
   });
   t.deepEqual(files.sort(), [
-    path.join(projectPath, 'index.md'),
-    path.join(projectPath, 'page.md'),
-    path.join(projectPath, 'directory', 'nested-page.md'),
-    path.join(projectPath, 'directory', 'directory-2', 'nested-page-2.md'),
+    path.join(contentPath, 'index.md'),
+    path.join(contentPath, 'page.md'),
+    path.join(contentPath, 'directory', 'nested-page.md'),
+    path.join(contentPath, 'directory', 'directory-2', 'nested-page-2.md'),
   ].sort());
 });
 
 test('getMarkdownFiles() should filter files based on config markdown extension', async (t) => {
-  const projectPath = path.join(projectsPath, 'valid-project');
+  const contentPath = path.join(projectsPath, 'valid-project', 'content');
   const files = await getMarkdownFiles({
-    contentPath: projectPath,
+    contentPath: contentPath,
     markdownExtension: 'txt',
   });
   t.deepEqual(files.sort(), [
-    path.join(projectPath, 'ignore.txt'),
+    path.join(contentPath, 'ignore.txt'),
   ].sort());
 });

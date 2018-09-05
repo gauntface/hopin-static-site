@@ -18,6 +18,10 @@ gulp.task('clean',
 gulp.task('build',
   gulp.series(
     'clean',
+    () => {
+      // TODO: Move to web build tool
+      return fs.copy(path.join(__dirname, 'src', 'assets'), path.join(__dirname, 'build', 'assets'));
+    },
     () => tsNode.build()
   )
 );

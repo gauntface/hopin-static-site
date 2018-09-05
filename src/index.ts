@@ -6,25 +6,33 @@ import {logger} from './utils/logger';
 import {SiteGenerator} from './controllers/site-generator';
 
 export async function buildSite(configPath: any) {
+  let buildDir = process.cwd();
+
   // TODO: Type checking on config path
   if (!configPath) {
     try {
-      const defaultPath = path.resolve('.', 'hopin.json');
-      fs.access(defaultPath);
+      const defaultPath = path.resolve(buildDir, 'hopin.json');
+      await fs.access(defaultPath);
       configPath = defaultPath;
     } catch (err) {
       configPath = null;
     }
   } else {
-    const stats = fs.lstatSync(configPath);
+    const stats = await fs.lstat(configPath);
     if (stats.isDirectory()) {
+      buildDir = configPath;
       configPath = path.resolve(configPath, 'hopin.json');
+      try {
+        await fs.access(configPath);
+      } catch(err) {
+        configPath = null;
+      }
     }
   }
 
   const siteGen = new SiteGenerator();
   try {
-    await siteGen.build(configPath);
+    await siteGen.build(buildDir, configPath);
     logger.log(`C'est fini.`);
   } catch (err) {
     logger.error('Unable to build site.');

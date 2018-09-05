@@ -2,8 +2,13 @@ import {fork, ChildProcess} from 'child_process';
 import {logger} from '../utils/logger';
 import { Config } from '../models/config';
 
+type FileProcessorResult = {
+    inputPath: string
+    outputPath: string
+}
+
 export type Message =  {
-    result?: string
+    result?: FileProcessorResult
     error?: string
 }
 
@@ -22,9 +27,8 @@ export class WorkerPool {
         this.processCount = 0;
     }
 
-    async start(processName: string): Promise<{[key:string]: string|Error}> {
-        const jobResults: {[key:string]: string|Error} = {};
-        const errors: {[key:string]: Error} = {};
+    async start(processName: string): Promise<{[key:string]: FileProcessorResult|Error}> {
+        const jobResults: {[key:string]: FileProcessorResult|Error} = {};
         
         const promises: Array<Promise<void>> = [];
         for (let i = 0; i < this.jobs.length; i++) {
