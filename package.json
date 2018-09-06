@@ -71,5 +71,5 @@
   "bin": {
     "hopin-static-site": "./build/cli.js"
   },
-  "version": "0.0.0"
+  "version": "0.0.1"
 }
