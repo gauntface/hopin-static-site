@@ -25,11 +25,14 @@ export class SiteGenerator {
     for (const key of Object.keys(results)) {
       const result = results[key];
       if (result instanceof Error) {
-        errors.push(result);
+        errors.push(`Error building ${key}\n${result.message}`);
       }
     }
     if (errors.length > 0) {
-      throw new Error(`${errors} errors occured:\n\n${errors.join('\n')}`);
+      for(const err of errors) {
+        console.error(err);
+      }
+      throw new Error(`${errors} errors occured.`);
     }
     // Fin.
   }
