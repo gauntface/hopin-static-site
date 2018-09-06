@@ -52,7 +52,7 @@
     "static-site"
   ],
   "files": [
-    "dist/**/*"
+    "build/**/*"
   ],
   "homepage": "https://github.com/gauntface/hopin-static-site#readme",
   "repository": {
