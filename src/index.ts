@@ -36,7 +36,6 @@ export async function buildSite(configPath: any) {
     logger.log(`C'est fini.`);
   } catch (err) {
     logger.error('Unable to build site.');
-    logger.error(err);
     process.exit(1);
   }
 }
