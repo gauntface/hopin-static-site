@@ -42,7 +42,7 @@ test('file-processor.start() should render file contents for valid file', async 
     t.deepEqual(Object.keys(msg), ['result'])
     t.deepEqual(msg.result, {
         inputPath: inputPath,
-        outputPath: path.join(tmpDir, 'index.md'),
+        outputPath: path.join(tmpDir, 'index.html'),
     });
     const buffer = await fs.readFile(msg.result.outputPath);
     t.deepEqual(buffer.toString(), `<html class="default">

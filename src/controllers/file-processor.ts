@@ -50,7 +50,13 @@ async function run(inputPath: string, config: Config): Promise<Message> {
         });
 
         const relativePath = path.relative(config.contentPath, inputPath);
-        const outputPath = path.join(config.outputPath, relativePath);
+        
+        // replace .md with .html
+        const relPathPieces = path.parse(relativePath);
+        delete relPathPieces.base;
+        relPathPieces.ext = '.html';
+
+        const outputPath = path.join(config.outputPath, path.format(relPathPieces));
         await fs.mkdirp(path.dirname(outputPath));
         await fs.writeFile(outputPath, wrappedHTML);
 
