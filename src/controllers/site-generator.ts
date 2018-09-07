@@ -33,10 +33,11 @@ export class SiteGenerator {
     if (errors.length > 0) {
       logger.error(`☠️ Build returned ${errors.length} error${errors.length > 1 ? 's' : ''}`)
       for(const err of errors) {
-        logger.error(err);
+        for (const line of err.split('\n')) {
+          console.error(`  ${line}`);
+        }
       }
       throw new Error(`${errors} errors occured.`);
     }
-    // Fin.
   }
 }

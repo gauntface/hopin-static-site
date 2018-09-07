@@ -33,9 +33,9 @@ export async function buildSite(configPath: any) {
   const siteGen = new SiteGenerator();
   try {
     await siteGen.build(buildDir, configPath);
-    logger.log(`C'est fini.`);
+    logger.log(`✔️ C'est fini.`);
   } catch (err) {
-    logger.error('Unable to build site.');
+    logger.error('❌ Unable to build site.');
     process.exit(1);
   }
 }
