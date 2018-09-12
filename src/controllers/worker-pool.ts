@@ -1,5 +1,6 @@
 import {fork, ChildProcess} from 'child_process';
-import {logger} from '../utils/logger';
+import { logger } from '@hopin/logger';
+
 import { Config } from '../models/config';
 
 type FileProcessorResult = {

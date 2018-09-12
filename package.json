@@ -24,8 +24,7 @@
     ]
   },
   "devDependencies": {
-    "@hopin/logger": "0.0.4",
-    "@hopin/wbt-ts-node": "0.0.4",
+    "@hopin/wbt-ts-node": "0.0.16",
     "@types/fs-extra": "5.0.4",
     "@types/glob": "5.0.35",
     "@types/handlebars": "4.0.39",
@@ -39,6 +38,7 @@
     "tslint": "5.11.0"
   },
   "dependencies": {
+    "@hopin/logger": "1.0.2",
     "@hopin/markdown": "0.0.3",
     "@hopin/render": "^3.0.2",
     "chalk": "^2.4.1",
