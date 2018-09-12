@@ -22,6 +22,6 @@ gulp.task('build',
       // TODO: Move to web build tool
       return fs.copy(path.join(__dirname, 'src', 'assets'), path.join(__dirname, 'build', 'assets'));
     },
-    () => tsNode.build()
+    tsNode.gulpBuild()
   )
 );

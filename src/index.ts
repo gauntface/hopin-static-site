@@ -1,9 +1,11 @@
 import * as process from 'process';
 import * as path from 'path';
 import * as fs from 'fs-extra';
+import {logger} from '@hopin/logger';
 
-import {logger} from './utils/logger';
 import {SiteGenerator} from './controllers/site-generator';
+
+logger.setPrefix('@hopin/static-site');
 
 export async function buildSite(configPath: any) {
   let buildDir = process.cwd();

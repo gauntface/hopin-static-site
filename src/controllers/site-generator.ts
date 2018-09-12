@@ -1,8 +1,8 @@
 import * as path from 'path';
+import { logger } from '@hopin/logger';
 
 import {getConfig} from '../models/config';
 import {getMarkdownFiles} from '../models/markdown-files';
-import {logger} from '../utils/logger';
 import {WorkerPool} from './worker-pool';
 
 
