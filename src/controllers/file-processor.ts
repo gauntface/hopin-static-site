@@ -4,7 +4,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { logger } from '@hopin/logger';
 
-import { Message } from './worker-pool';
+import { Message, RUN_WITH_DETAILS_MSG } from './worker-pool';
 import { Config } from '../models/config';
 
 async function run(inputPath: string, config: Config): Promise<Message> {
@@ -12,7 +12,7 @@ async function run(inputPath: string, config: Config): Promise<Message> {
     try {
         const template = await createTemplateFromFile(inputPath);
         // TODO: Make this configurable in markdown file itself
-        const wrappingTemplate = await createTemplateFromFile(config.defaultHTMLTmpl);
+        const wrappingTemplate = await createTemplateFromFile(path.join(config.themePath, 'default.tmpl'));
 
         // Wrapping template will be the template that displays the styles etc
         // so copy template styles and scripts over
@@ -47,6 +47,7 @@ async function run(inputPath: string, config: Config): Promise<Message> {
         // Finally render the content in the wrapping template
         const wrappedHTML = await wrappingTemplate.render({
             content: markdownRender.html,
+            yaml: template.yaml,
         });
 
         const relativePath = path.relative(config.contentPath, inputPath);
@@ -67,13 +68,15 @@ async function run(inputPath: string, config: Config): Promise<Message> {
             }
         };
     } catch (err) {
+        logger.error('File Processor run failed.');
+        logger.error(err);
         return {
             error: `Unable to read and parse: ${err.message}`,
         };
     }
 }
 
-export async function start(args: Array<string>, config: Config): Promise<Message> {
+export async function start(args: Array<string>, config: Config, navTree: {}): Promise<Message> {
     if (args.length != 3) {
         logger.warn('Unexpected number of process args passed to file-processor: ', process.argv);
         return {
@@ -85,16 +88,16 @@ export async function start(args: Array<string>, config: Config): Promise<Messag
 }
 
 let isRunning = false;
-process.on('message', (msg) => {
+process.on('message', (msg: any) => {
   switch(msg.name) {
-    case 'run-with-config': {
+    case RUN_WITH_DETAILS_MSG: {
       if (isRunning) {
           console.log('File processor already running, ignoring msg: ', msg);
           return;
       }
 
       isRunning = true;
-      start(process.argv, msg.config).then((msg) => {
+      start(process.argv, msg.config, msg.navTree).then((msg) => {
         process.send(msg);
         process.exit(0);
       })

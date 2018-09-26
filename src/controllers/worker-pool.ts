@@ -2,6 +2,9 @@ import {fork, ChildProcess} from 'child_process';
 import { logger } from '@hopin/logger';
 
 import { Config } from '../models/config';
+import { getNavTree } from '../models/nav-tree';
+
+export const RUN_WITH_DETAILS_MSG = 'run-with-details';
 
 type FileProcessorResult = {
     inputPath: string
@@ -22,13 +25,15 @@ export class WorkerPool {
         if (config.workPoolSize <= 0) {
             throw new Error('You must provide a worker pool count of > 0');
         }
-        
+
         this.config = config;
         this.jobs = jobs;
         this.processCount = 0;
     }
 
     async start(processName: string): Promise<{[key:string]: FileProcessorResult|Error}> {
+        const navTree = await getNavTree(this.config.navigationFile);
+        
         const jobResults: {[key:string]: FileProcessorResult|Error} = {};
         
         const promises: Array<Promise<void>> = [];
@@ -36,7 +41,7 @@ export class WorkerPool {
             await this.getFreeSpot();
             this.processCount++;
             const job = this.jobs[i];
-            promises.push(this.runWorker(processName, job, (msg: Message) => {
+            promises.push(this.runWorker(processName, job, navTree, (msg: Message) => {
                 if (msg.result) {
                     jobResults[job] = msg.result;
                 } else if (msg.error) {
@@ -68,12 +73,13 @@ export class WorkerPool {
         }
     }
 
-    private async runWorker(processName: string, job: string, cb: (msg: Message) => void): Promise<void> {
+    private async runWorker(processName: string, job: string, navTree: {}, cb: (msg: Message) => void): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const forkedProcess = fork(processName, [job]);
             forkedProcess.send({
-                name: 'run-with-config',
+                name: RUN_WITH_DETAILS_MSG,
                 config: this.config,
+                navTree,
             });
             forkedProcess.on('message', (msg: Message) => {
                 cb(msg);

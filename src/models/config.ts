@@ -12,9 +12,10 @@ export type Style = {
 export type Config = {
   contentPath: string
   outputPath: string
+  themePath: string
+  navigationFile: string
   markdownExtension: string
   workPoolSize: number
-  defaultHTMLTmpl: string
   tokenAssets: {
     [key: string]: {
       styles: Style,
@@ -25,9 +26,10 @@ export type Config = {
 function getDefaults(buildDir: string): Config {
   return {
     contentPath: path.join(buildDir, 'content', path.sep),
+    navigationFile: path.join(buildDir, 'content', 'navigation.json'),
     outputPath: path.join(buildDir, 'build', path.sep),
+    themePath: path.join(__dirname, '..', 'themes', 'default'),
     markdownExtension: 'md',
-    defaultHTMLTmpl: path.join(__dirname, '..', 'assets', 'default.tmpl'),
     workPoolSize: 10,
     tokenAssets: {},
   };
@@ -43,14 +45,14 @@ async function validateConfig(config: any, buildDir: string, configPath: string)
   const fields = [
     'contentPath',
     'outputPath',
-    'defaultHTMLTmpl',
+    'themePath',
+    'navigationFile',
   ];
   for (const field of fields) {
     if (config[field]) {
       config[field] = path.resolve(path.dirname(configPath), config[field]);
     }
   }
-
   
   if (config.tokenAssets) {
     for (const t of Object.keys(config.tokenAssets)) {
@@ -62,7 +64,7 @@ async function validateConfig(config: any, buildDir: string, configPath: string)
       }
     }
   }
-  
+
   // Merge defaults with config
   return  Object.assign({}, getDefaults(buildDir), config);
 }

@@ -27,7 +27,7 @@ test('file-processor.start() should render file contents for valid file', async 
     const msg = await start(['', '', inputPath], {
         contentPath: contentFilesPath,
         outputPath: tmpDir, 
-        defaultHTMLTmpl: path.join(projectFilePath, 'templates', 'default.tmpl'),
+        themePath: path.join(projectFilePath, 'theme'),
         tokenAssets: {
             h1: {
                 styles: {
