@@ -7,21 +7,26 @@ import { logger } from '@hopin/logger';
 import { Message, RUN_WITH_DETAILS_MSG } from './worker-pool';
 import { Config } from '../models/config';
 
-async function run(inputPath: string, config: Config): Promise<Message> {
+async function run(inputPath: string, config: Config, navTree: {leafNodes?: Array<{}>}): Promise<Message> {
     // TODO: Check files exist first
     try {
         const template = await createTemplateFromFile(inputPath);
-        // TODO: Make this configurable in markdown file itself
-        const wrappingTemplate = await createTemplateFromFile(path.join(config.themePath, 'default.tmpl'));
+        
+        // Render the original page and run it through the markdown parser
+        const plainPage = await template.render({
+            topLevel: {
+                navigation: navTree.leafNodes,
+            }
+        });
+        const markdownRender = await renderMarkdown(plainPage);
+
+        const themeFile = path.join(config.themePath, 'default.tmpl');
+        const wrappingTemplate = await createTemplateFromFile(themeFile);
 
         // Wrapping template will be the template that displays the styles etc
         // so copy template styles and scripts over
         wrappingTemplate.styles.add(template.styles);
         wrappingTemplate.scripts.add(template.scripts);
-
-        // Render the original page and run it through the markdown parser
-        const plainPage = await template.render();
-        const markdownRender = await renderMarkdown(plainPage);
 
         // TODO Add the markdown token styles to the wrapping template
         for (const t of markdownRender.tokens) {
@@ -45,9 +50,18 @@ async function run(inputPath: string, config: Config): Promise<Message> {
         }
 
         // Finally render the content in the wrapping template
+        if (navTree.leafNodes) {
+            console.log('Nav Tree: ', navTree.leafNodes.length);
+        } else {
+            console.log('No leaf nodes');
+        }
         const wrappedHTML = await wrappingTemplate.render({
-            content: markdownRender.html,
-            yaml: template.yaml,
+            topLevel: {
+                content: markdownRender.html,
+                // For the root, we only care about the array of top level pages.
+                navigation: navTree.leafNodes,
+                page: template.yaml
+            },
         });
 
         const relativePath = path.relative(config.contentPath, inputPath);
@@ -76,7 +90,7 @@ async function run(inputPath: string, config: Config): Promise<Message> {
     }
 }
 
-export async function start(args: Array<string>, config: Config, navTree: {}): Promise<Message> {
+export async function start(args: Array<string>, config: Config, navTree: {leafNodes?: Array<{}>} = {}): Promise<Message> {
     if (args.length != 3) {
         logger.warn('Unexpected number of process args passed to file-processor: ', process.argv);
         return {
@@ -84,7 +98,7 @@ export async function start(args: Array<string>, config: Config, navTree: {}): P
         };
     }
 
-    return run(args[2], config);
+    return run(args[2], config, navTree);
 }
 
 let isRunning = false;

@@ -1,5 +1,6 @@
 ---
 example: 'example yaml'
+title: 'Example title'
 styles:
   inline:
     - ../theme/static/styles/index-inline.css
