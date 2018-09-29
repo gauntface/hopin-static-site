@@ -22,6 +22,8 @@ gulp.task('build',
       // TODO: Move to web build tool
       return fs.copy(path.join(__dirname, 'src', 'themes'), path.join(__dirname, 'build', 'themes'));
     },
-    tsNode.gulpBuild()
+    tsNode.gulpBuild({
+      flags: ['--skipLibCheck'],
+    })
   )
 );
