@@ -3,19 +3,23 @@ import * as path from 'path';
 import {logger} from '@hopin/logger';
 import * as json5 from 'json5';
 import * as matter from 'gray-matter';
+import { Config } from './config';
 
 type PageInfo = {
     path: string
     subnav: string|Array<PageInfo>
 }
 
-class NavNode {
+export class NavNode {
     pagePath: string|null
     title: string
+    url: string
     leafNodes: Array<NavNode>
 
     constructor(pagePath: string|null, title: string, url: string, leafNodes: Array<NavNode>) {
         this.pagePath = pagePath;
+        this.title = title;
+        this.url = url;
         this.leafNodes = leafNodes;
     }
 }
@@ -33,52 +37,62 @@ async function parseNavigation(relativePath: string, navigation: null|string|Arr
     return navigation;
 }
 
-async function getNavNode(relativePath: string, pagePath: null|string, navigation: Array<PageInfo>): Promise<NavNode> {
+async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string, relativeNavigationFilePath: string, pagePath: null|string, navigation: Array<PageInfo>): Promise<NavNode> {
     const leafNodes: Array<NavNode> = [];
     if (navigation) {
         for (const page of navigation) {
-            const subnav = await parseNavigation(relativePath, page.subnav);
-            leafNodes.push(await getNavNode(relativePath, page.path, subnav));
+            const subnav = await parseNavigation(relativeNavigationFilePath, page.subnav);
+            leafNodes.push(await getNavNode(pageIDs, contentPath, relativeNavigationFilePath, page.path, subnav));
         }
     }
     
     // TODO: Get YAML from page path
-    const frontMatter = matter(path.resolve(relativePath, pagePath));
+    const absolutePath = path.resolve(relativeNavigationFilePath, pagePath);
+    const pageContents = await fs.readFile(absolutePath);
+    const frontMatter = matter(pageContents);
     // tslint:disable-next-line:no-any
     const yaml = frontMatter.data as any;
 
-    return new NavNode(pagePath, yaml.title, '', leafNodes);
+    const relativeFilePath = path.relative(contentPath, absolutePath);
+    const url = path.join('/', relativeFilePath.replace('index.md', ''));
+
+    const navNode = new NavNode(pagePath, yaml.title, url, leafNodes);
+    if (yaml.id) {
+        pageIDs[yaml.id] = navNode;
+    }
+    return navNode;
 }
 
-export async function getNavTree(navigationFile: string): Promise<Array<NavNode>> {
-    if (!navigationFile) {
+export async function getNavTree(config: Config): Promise<Array<NavNode>> {
+    if (!config.navigationFile) {
         return [];
     }
 
     try {
-        await fs.access(navigationFile);
+        await fs.access(config.navigationFile);
     } catch (err) {
-        logger.warn(`Unable to find navigation file '${navigationFile}'. No navigation will be included in build.`);
+        logger.warn(`Unable to find navigation file '${config.navigationFile}'. No navigation will be included in build.`);
         return [];
     }
 
     let navigation: Array<PageInfo> = [];
-    if (navigationFile) {
+    if (config.navigationFile) {
         try {
-            const navBuffer = await fs.readFile(navigationFile);
+            const navBuffer = await fs.readFile(config.navigationFile);
             const navString = navBuffer.toString();
             navigation = json5.parse(navString);
         } catch (err) {
-            logger.error(`Unable to read and parse the navigation file '${navigationFile}': `, err);
-            throw new Error(`Unable to read and parse navigation file '${navigationFile}'`);
+            logger.error(`Unable to read and parse the navigation file '${config.navigationFile}': `, err);
+            throw new Error(`Unable to read and parse navigation file '${config.navigationFile}'`);
         }
     }
 
-    const topNav = await parseNavigation(path.dirname(navigationFile), navigation);
+    const topNav = await parseNavigation(path.dirname(config.navigationFile), navigation);
     const pages: Array<NavNode> = [];
+    const pageIDs: {[id: string]: NavNode} = {};
     for (const pagePath of topNav) {
-        const nav = await parseNavigation(path.dirname(navigationFile), pagePath.subnav);
-        pages.push(await getNavNode(path.dirname(navigationFile), pagePath.path, nav));
+        const nav = await parseNavigation(path.dirname(config.navigationFile), pagePath.subnav);
+        pages.push(await getNavNode(pageIDs, config.contentPath, path.dirname(config.navigationFile), pagePath.path, nav));
     }
-    return pages;
+    return Object.assign(pageIDs, pages);
 }

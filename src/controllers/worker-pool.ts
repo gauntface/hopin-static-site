@@ -2,7 +2,7 @@ import {fork, ChildProcess} from 'child_process';
 import { logger } from '@hopin/logger';
 
 import { Config } from '../models/config';
-import { getNavTree } from '../models/nav-tree';
+import { getNavTree,NavNode } from '../models/nav-tree';
 
 export const RUN_WITH_DETAILS_MSG = 'run-with-details';
 
@@ -32,7 +32,7 @@ export class WorkerPool {
     }
 
     async start(processName: string): Promise<{[key:string]: FileProcessorResult|Error}> {
-        const navTree = await getNavTree(this.config.navigationFile);
+        const navigation = await getNavTree(this.config);
         
         const jobResults: {[key:string]: FileProcessorResult|Error} = {};
         
@@ -41,7 +41,7 @@ export class WorkerPool {
             await this.getFreeSpot();
             this.processCount++;
             const job = this.jobs[i];
-            promises.push(this.runWorker(processName, job, navTree, (msg: Message) => {
+            promises.push(this.runWorker(processName, job, navigation, (msg: Message) => {
                 if (msg.result) {
                     jobResults[job] = msg.result;
                 } else if (msg.error) {
@@ -73,13 +73,13 @@ export class WorkerPool {
         }
     }
 
-    private async runWorker(processName: string, job: string, navTree: {}, cb: (msg: Message) => void): Promise<void> {
+    private async runWorker(processName: string, job: string, navigation: Array<NavNode>, cb: (msg: Message) => void): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const forkedProcess = fork(processName, [job]);
             forkedProcess.send({
                 name: RUN_WITH_DETAILS_MSG,
                 config: this.config,
-                navTree,
+                navigation,
             });
             forkedProcess.on('message', (msg: Message) => {
                 cb(msg);

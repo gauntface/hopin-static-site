@@ -6,8 +6,9 @@ import { logger } from '@hopin/logger';
 
 import { Message, RUN_WITH_DETAILS_MSG } from './worker-pool';
 import { Config } from '../models/config';
+import {NavNode} from '../models/nav-tree';
 
-async function run(inputPath: string, config: Config, navTree: {leafNodes?: Array<{}>}): Promise<Message> {
+async function run(inputPath: string, config: Config, navigation: Array<NavNode>): Promise<Message> {
     // TODO: Check files exist first
     try {
         const template = await createTemplateFromFile(inputPath);
@@ -15,7 +16,7 @@ async function run(inputPath: string, config: Config, navTree: {leafNodes?: Arra
         // Render the original page and run it through the markdown parser
         const plainPage = await template.render({
             topLevel: {
-                navigation: navTree.leafNodes,
+                navigation,
             }
         });
         const markdownRender = await renderMarkdown(plainPage);
@@ -50,16 +51,10 @@ async function run(inputPath: string, config: Config, navTree: {leafNodes?: Arra
         }
 
         // Finally render the content in the wrapping template
-        if (navTree.leafNodes) {
-            console.log('Nav Tree: ', navTree.leafNodes.length);
-        } else {
-            console.log('No leaf nodes');
-        }
         const wrappedHTML = await wrappingTemplate.render({
             topLevel: {
                 content: markdownRender.html,
-                // For the root, we only care about the array of top level pages.
-                navigation: navTree.leafNodes,
+                navigation,
                 page: template.yaml
             },
         });
@@ -90,7 +85,7 @@ async function run(inputPath: string, config: Config, navTree: {leafNodes?: Arra
     }
 }
 
-export async function start(args: Array<string>, config: Config, navTree: {leafNodes?: Array<{}>} = {}): Promise<Message> {
+export async function start(args: Array<string>, config: Config, navigation: Array<NavNode> = []): Promise<Message> {
     if (args.length != 3) {
         logger.warn('Unexpected number of process args passed to file-processor: ', process.argv);
         return {
@@ -98,7 +93,7 @@ export async function start(args: Array<string>, config: Config, navTree: {leafN
         };
     }
 
-    return run(args[2], config, navTree);
+    return run(args[2], config, navigation);
 }
 
 let isRunning = false;
@@ -111,7 +106,7 @@ process.on('message', (msg: any) => {
       }
 
       isRunning = true;
-      start(process.argv, msg.config, msg.navTree).then((msg) => {
+      start(process.argv, msg.config, msg.navigation).then((msg) => {
         process.send(msg);
         process.exit(0);
       })
