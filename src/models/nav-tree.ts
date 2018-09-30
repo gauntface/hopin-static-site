@@ -14,12 +14,15 @@ export class NavNode {
     pagePath: string|null
     title: string
     url: string
+    yaml: {}
     leafNodes: Array<NavNode>
 
-    constructor(pagePath: string|null, title: string, url: string, leafNodes: Array<NavNode>) {
+    // tslint:disable-next-line:no-any
+    constructor(pagePath: string|null, title: string, url: string, yaml: any, leafNodes: Array<NavNode>) {
         this.pagePath = pagePath;
         this.title = title;
         this.url = url;
+        this.yaml = yaml;
         this.leafNodes = leafNodes;
     }
 }
@@ -56,7 +59,7 @@ async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string,
     const relativeFilePath = path.relative(contentPath, absolutePath);
     const url = path.join('/', relativeFilePath.replace('index.md', ''));
 
-    const navNode = new NavNode(pagePath, yaml.title, url, leafNodes);
+    const navNode = new NavNode(pagePath, yaml.title, url, yaml, leafNodes);
     if (yaml.id) {
         pageIDs[yaml.id] = navNode;
     }
