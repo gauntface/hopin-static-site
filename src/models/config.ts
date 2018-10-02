@@ -4,9 +4,9 @@ import * as json5 from 'json5';
 import { DEFAULT_CONFIG } from 'tslint/lib/configuration';
 
 export type Style = {
-  inline?: string
-  sync?: string
-  async?: string
+  inline?: Array<string>
+  sync?: Array<string>
+  async?: Array<string>
 }
 
 export type Config = {
@@ -58,9 +58,12 @@ async function validateConfig(config: any, buildDir: string, configPath: string)
     for (const t of Object.keys(config.tokenAssets)) {
       const asset = config.tokenAssets[t];
       if (asset.styles && asset.styles.inline) {
-        const absPath = path.resolve(path.dirname(configPath), asset.styles.inline);
-        const buffer = await fs.readFile(absPath);
-        config.tokenAssets[t].styles.inline = buffer.toString();
+        const inlineContents = [];
+        for (const inline of asset.styles.inline) {
+          const absPath = path.resolve(path.dirname(configPath), inline);
+          inlineContents.push(absPath);
+        }
+        config.tokenAssets[t].styles.inline = inlineContents;
       }
     }
   }

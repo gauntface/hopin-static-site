@@ -12,7 +12,7 @@ async function run(inputPath: string, config: Config, navigation: Array<NavNode>
     // TODO: Check files exist first
     try {
         const template = await createTemplateFromFile(inputPath);
-        
+
         // Render the original page and run it through the markdown parser
         const plainPage = await template.render({
             topLevel: {
@@ -29,7 +29,6 @@ async function run(inputPath: string, config: Config, navigation: Array<NavNode>
         wrappingTemplate.styles.add(template.styles);
         wrappingTemplate.scripts.add(template.scripts);
 
-        // TODO Add the markdown token styles to the wrapping template
         for (const t of markdownRender.tokens) {
           const tokenAssets = config.tokenAssets[t];
           if (!tokenAssets) {
@@ -39,13 +38,20 @@ async function run(inputPath: string, config: Config, navigation: Array<NavNode>
           if (tokenAssets.styles) {
             const styles = tokenAssets.styles;
             if (styles.inline) {
-              wrappingTemplate.styles.inline.add(styles.inline, styles.inline);
+                for (const filePath of styles.inline) {
+                    const buffer = await fs.readFile(filePath);
+                    wrappingTemplate.styles.inline.add(filePath, buffer.toString());
+                }
             }
             if (styles.sync) {
-              wrappingTemplate.styles.sync.add(styles.sync, styles.sync);
+                for (const filePath of styles.sync) {
+                    wrappingTemplate.styles.sync.add(filePath, filePath);
+                }
             }
             if (styles.async) {
-              wrappingTemplate.styles.async.add(styles.async, styles.async);
+              for (const filePath of styles.async) {
+                wrappingTemplate.styles.async.add(filePath, filePath);
+            }
             }
           }
         }
@@ -60,7 +66,7 @@ async function run(inputPath: string, config: Config, navigation: Array<NavNode>
         });
 
         const relativePath = path.relative(config.contentPath, inputPath);
-        
+
         // replace .md with .html
         const relPathPieces = path.parse(relativePath);
         delete relPathPieces.base;
