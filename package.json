@@ -29,7 +29,7 @@
     "@types/glob": "7.1.1",
     "@types/handlebars": "4.0.39",
     "@types/json5": "0.0.30",
-    "@types/marked": "0.4.1",
+    "@types/marked": "0.4.2",
     "@types/meow": "4.0.1",
     "ava": "0.25.0",
     "coveralls": "3.0.2",
