@@ -32,16 +32,16 @@ export class WorkerPool {
     }
 
     async start(processName: string): Promise<{[key:string]: FileProcessorResult|Error}> {
-        const navigation = await getNavTree(this.config);
-        
+        const {navtree, navgroup} = await getNavTree(this.config);
+
         const jobResults: {[key:string]: FileProcessorResult|Error} = {};
-        
+
         const promises: Array<Promise<void>> = [];
         for (let i = 0; i < this.jobs.length; i++) {
             await this.getFreeSpot();
             this.processCount++;
             const job = this.jobs[i];
-            promises.push(this.runWorker(processName, job, navigation, (msg: Message) => {
+            promises.push(this.runWorker(processName, job, navtree, navgroup, (msg: Message) => {
                 if (msg.result) {
                     jobResults[job] = msg.result;
                 } else if (msg.error) {
@@ -49,11 +49,11 @@ export class WorkerPool {
                 } else {
                     logger.error(`Unkown worker pool message: ${msg}`)
                 }
-                
+
                 this.processCount--;
             }));
         }
-        
+
         await Promise.all(promises);
 
         return jobResults;
@@ -73,13 +73,14 @@ export class WorkerPool {
         }
     }
 
-    private async runWorker(processName: string, job: string, navigation: Array<NavNode>, cb: (msg: Message) => void): Promise<void> {
+    private async runWorker(processName: string, job: string, navtree: Array<NavNode>, navgroups: {[id: string]: NavNode}, cb: (msg: Message) => void): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const forkedProcess = fork(processName, [job]);
             forkedProcess.send({
                 name: RUN_WITH_DETAILS_MSG,
                 config: this.config,
-                navigation,
+                navtree,
+                navgroups,
             });
             forkedProcess.on('message', (msg: Message) => {
                 cb(msg);

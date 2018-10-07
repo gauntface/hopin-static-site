@@ -8,15 +8,18 @@ import { Message, RUN_WITH_DETAILS_MSG } from './worker-pool';
 import { Config } from '../models/config';
 import {NavNode} from '../models/nav-tree';
 
-async function run(inputPath: string, config: Config, navigation: Array<NavNode>): Promise<Message> {
+async function run(inputPath: string, config: Config, navtree: Array<NavNode>, navgroups: {[id: string]: NavNode}): Promise<Message> {
     // TODO: Check files exist first
     try {
         const template = await createTemplateFromFile(inputPath);
 
+        console.log('DELETE ME: ', navgroups);
+
         // Render the original page and run it through the markdown parser
         const plainPage = await template.render({
             topLevel: {
-                navigation,
+                navtree,
+                navgroups,
             }
         });
         const markdownRender = await renderMarkdown(plainPage);
@@ -60,7 +63,8 @@ async function run(inputPath: string, config: Config, navigation: Array<NavNode>
         const wrappedHTML = await wrappingTemplate.render({
             topLevel: {
                 content: markdownRender.html,
-                navigation,
+                navtree,
+                navgroups,
                 page: template.yaml
             },
         });
@@ -91,7 +95,7 @@ async function run(inputPath: string, config: Config, navigation: Array<NavNode>
     }
 }
 
-export async function start(args: Array<string>, config: Config, navigation: Array<NavNode> = []): Promise<Message> {
+export async function start(args: Array<string>, config: Config, navtree: Array<NavNode> = [], navgroups: {[id: string]: NavNode} = {}): Promise<Message> {
     if (args.length != 3) {
         logger.warn('Unexpected number of process args passed to file-processor: ', process.argv);
         return {
@@ -99,7 +103,7 @@ export async function start(args: Array<string>, config: Config, navigation: Arr
         };
     }
 
-    return run(args[2], config, navigation);
+    return run(args[2], config, navtree, navgroups);
 }
 
 let isRunning = false;
@@ -112,7 +116,7 @@ process.on('message', (msg: any) => {
       }
 
       isRunning = true;
-      start(process.argv, msg.config, msg.navigation).then((msg) => {
+      start(process.argv, msg.config, msg.navtree, msg.mavgroups).then((msg) => {
         process.send(msg);
         process.exit(0);
       })

@@ -48,7 +48,7 @@ async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string,
             leafNodes.push(await getNavNode(pageIDs, contentPath, relativeNavigationFilePath, page.path, subnav));
         }
     }
-    
+
     // TODO: Get YAML from page path
     const absolutePath = path.resolve(relativeNavigationFilePath, pagePath);
     const pageContents = await fs.readFile(absolutePath);
@@ -57,7 +57,7 @@ async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string,
     const yaml = frontMatter.data as any;
 
     const relativeFilePath = path.relative(contentPath, absolutePath);
-    const url = path.join('/', relativeFilePath.replace('index.md', ''));
+    const url = path.join('/', relativeFilePath.replace('index.md', '').replace('.md', '.html'));
 
     const navNode = new NavNode(pagePath, yaml.title, url, yaml, leafNodes);
     if (yaml.id) {
@@ -66,16 +66,16 @@ async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string,
     return navNode;
 }
 
-export async function getNavTree(config: Config): Promise<Array<NavNode>> {
+export async function getNavTree(config: Config): Promise<{navtree: Array<NavNode>, navgroup: {[id: string]: NavNode}}> {
     if (!config.navigationFile) {
-        return [];
+        return {navtree: [], navgroup: {}};
     }
 
     try {
         await fs.access(config.navigationFile);
     } catch (err) {
         logger.warn(`Unable to find navigation file '${config.navigationFile}'. No navigation will be included in build.`);
-        return [];
+        return {navtree: [], navgroup: {}};
     }
 
     let navigation: Array<PageInfo> = [];
@@ -97,5 +97,5 @@ export async function getNavTree(config: Config): Promise<Array<NavNode>> {
         const nav = await parseNavigation(path.dirname(config.navigationFile), pagePath.subnav);
         pages.push(await getNavNode(pageIDs, config.contentPath, path.dirname(config.navigationFile), pagePath.path, nav));
     }
-    return Object.assign(pageIDs, pages);
+    return {navtree: pages, navgroup: pageIDs};
 }
