@@ -30,7 +30,7 @@
     "@types/handlebars": "4.0.39",
     "@types/json5": "0.0.30",
     "@types/marked": "0.4.2",
-    "@types/meow": "4.0.1",
+    "@types/meow": "5.0.0",
     "ava": "0.25.0",
     "coveralls": "3.0.2",
     "gulp": "4.0.0",
