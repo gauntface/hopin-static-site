@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { logger } from '@hopin/logger';
 
 import {getConfig} from '../models/config';
@@ -38,6 +39,32 @@ export class SiteGenerator {
         }
       }
       throw new Error(`${errors} errors occured.`);
+    }
+
+    // Copy over static/ files from theme
+    const themeStatic = path.join(config.themePath, 'static');
+    let staticExists = false;
+    try {
+      await fs.access(themeStatic);
+      staticExists = true;
+    } catch (err) {
+      logger.debug('No <theme>/static/ directory found in theme.', err);
+    }
+
+    if (staticExists) {
+      await fs.copy(themeStatic, config.outputPath);
+    }
+
+    staticExists = false;
+    try {
+      await fs.access(config.staticPath);
+      staticExists = true;
+    } catch (err) {
+      logger.debug('No static/ directory found in theme.', err);
+    }
+
+    if (staticExists) {
+      await fs.copy(config.staticPath, config.outputPath);
     }
   }
 }

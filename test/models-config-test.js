@@ -35,20 +35,24 @@ test('getConfig() should handle a null config path and return a valid config obj
 	t.deepEqual(config, {
 		contentPath: path.join(buildDir, 'content', path.sep),
 		outputPath: path.join(buildDir, 'build', path.sep),
-		defaultHTMLTmpl: path.join(__dirname, '..', 'build', 'assets', 'default.tmpl'),
+		staticPath: '/example/static/',
+		themePath: path.join(__dirname, '..', 'build', 'themes', 'default'),
+		navigationFile: path.join(buildDir, 'content', 'navigation.json'),
 		markdownExtension: 'md',
 		workPoolSize: 10,
 		tokenAssets: {},
 	});
 });
 
-test('getConfig() should parse, validate and return a valid config object using default values', async (t) => {
+test('getConfig() should parse, validate and return a valid config object using default values for empty config file', async (t) => {
 	const buildDir = path.join(path.sep, 'example')
 	const config = await getConfig(buildDir, path.join(configsPath, 'valid-empty-config.json'));
 	t.deepEqual(config, {
 		contentPath: path.join(buildDir, 'content', path.sep),
 		outputPath: path.join(buildDir, 'build', path.sep),
-		defaultHTMLTmpl: path.join(__dirname, '..', 'build', 'assets', 'default.tmpl'),
+		staticPath: '/example/static/',
+		themePath: path.join(__dirname, '..', 'build', 'themes', 'default'),
+		navigationFile: path.join(buildDir, 'content', 'navigation.json'),
 		markdownExtension: 'md',
 		workPoolSize: 10,
 		tokenAssets: {},
@@ -61,15 +65,17 @@ test('getConfig() should parse, validate and return a valid config object using 
 	t.deepEqual(config, {
 		contentPath: path.join(configsPath, 'custom-content-path'),
 		outputPath: path.join(configsPath, 'custom-output-path'),
-		defaultHTMLTmpl: path.join(configsPath, 'default.tmpl'),
+		themePath: path.join(configsPath, 'custom-theme'),
+		staticPath: './custom-static/',
+		navigationFile: path.join(configsPath, 'custom-nav-path', 'nav.json'),
 		markdownExtension: 'markdown',
 		workPoolSize: 20,
 		tokenAssets: {
 			h1: {
 				styles: {
-					inline: '.inline{}',
-					sync: '/styles/sync.css',
-					async: '/styles/async.css',
+					inline: [path.join(configsPath, '..', 'projects', 'valid-project', 'theme', 'static', 'styles', 'inline.css')],
+					sync: ['/styles/sync.css'],
+					async: ['/styles/async.css'],
 				}
 			},
 		},

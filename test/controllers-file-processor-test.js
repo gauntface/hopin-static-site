@@ -26,14 +26,14 @@ test('file-processor.start() should render file contents for valid file', async 
     const inputPath = path.join(contentFilesPath, 'index.md');
     const msg = await start(['', '', inputPath], {
         contentPath: contentFilesPath,
-        outputPath: tmpDir, 
-        defaultHTMLTmpl: path.join(projectFilePath, 'templates', 'default.tmpl'),
+        outputPath: tmpDir,
+        themePath: path.join(projectFilePath, 'theme'),
         tokenAssets: {
             h1: {
                 styles: {
-                    inline: '.h1-inline{}',
-                    sync: '/styles/h1-sync.css',
-                    async: '/styles/h1-async.css',
+                    inline: [path.join(projectFilePath, './theme/static/styles/h1-inline.css')],
+                    sync: ['/styles/h1-sync.css'],
+                    async: ['/styles/h1-async.css'],
                 },
             }
         },
@@ -46,12 +46,12 @@ test('file-processor.start() should render file contents for valid file', async 
     });
     const buffer = await fs.readFile(msg.result.outputPath);
     t.deepEqual(buffer.toString(), `<html class="default">
-<style>.inline{}</style>
-<style>.index-inline{}</style>
 <style>.h1-inline{}</style>
-<link rel="stylesheet" type="text/css" href="/styles/sync.css" />
-<link rel="stylesheet" type="text/css" href="/styles/index-sync.css" />
+<style>.index-inline{}</style>
+<style>.inline{}</style>
 <link rel="stylesheet" type="text/css" href="/styles/h1-sync.css" />
+<link rel="stylesheet" type="text/css" href="/styles/index-sync.css" />
+<link rel="stylesheet" type="text/css" href="/styles/sync.css" />
 <h1>HTML</h1>
 
 <h1 id="md">MD</h1>
@@ -63,7 +63,7 @@ test('file-processor.start() should render file contents for valid file', async 
 <script src="/scripts/index-async.js" async defer></script>
 <script>
 window.addEventListener('load', function() {
-var __hopin_async_styles = ['/styles/async.css','/styles/index-async.css','/styles/h1-async.css'];
+var __hopin_async_styles = ['/styles/h1-async.css','/styles/index-async.css','/styles/async.css'];
 for(var i = 0; i < __hopin_async_styles.length; i++) {
 var lT = document.createElement('link');
 lT.rel = 'stylesheet';

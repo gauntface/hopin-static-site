@@ -1,15 +1,23 @@
 {
   "contentPath": "./custom-content-path/",
   "outputPath": "./custom-output-path/",
-  "defaultHTMLTmpl": "default.tmpl",
+  "themePath": "./custom-theme/",
+  "staticPath": "./custom-static/",
+  "navigationFile": "./custom-nav-path/nav.json",
   "markdownExtension": "markdown",
   "workPoolSize": 20,
   "tokenAssets": {
     "h1": {
       "styles": {
-        "inline": "../projects/valid-project/styles/inline.css",
-        "sync": "/styles/sync.css",
-        "async": "/styles/async.css",
+        "inline": [
+          "../projects/valid-project/theme/static/styles/inline.css",
+        ],
+        "sync": [
+          "/styles/sync.css",
+        ],
+        "async": [
+          "/styles/async.css",
+        ],
       },
     },
   },
