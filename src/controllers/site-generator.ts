@@ -48,11 +48,23 @@ export class SiteGenerator {
       await fs.access(themeStatic);
       staticExists = true;
     } catch (err) {
-      logger.debug('No static/ directory found in theme.', err);
+      logger.debug('No <theme>/static/ directory found in theme.', err);
     }
 
     if (staticExists) {
       await fs.copy(themeStatic, config.outputPath);
+    }
+
+    staticExists = false;
+    try {
+      await fs.access(config.staticPath);
+      staticExists = true;
+    } catch (err) {
+      logger.debug('No static/ directory found in theme.', err);
+    }
+
+    if (staticExists) {
+      await fs.copy(config.staticPath, config.outputPath);
     }
   }
 }

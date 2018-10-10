@@ -8,28 +8,26 @@ import { Message, RUN_WITH_DETAILS_MSG } from './worker-pool';
 import { Config } from '../models/config';
 import {NavNode} from '../models/nav-tree';
 
-async function run(inputPath: string, config: Config, navtree: Array<NavNode>, navgroups: {[id: string]: NavNode}): Promise<Message> {
+async function run(inputPath: string, config: Config, navigation: {[id: string]: Array<NavNode>}): Promise<Message> {
     // TODO: Check files exist first
     try {
         const template = await createTemplateFromFile(inputPath);
 
-        console.log('DELETE ME: ', navgroups);
-
         // Render the original page and run it through the markdown parser
         const plainPage = await template.render({
             topLevel: {
-                navtree,
-                navgroups,
+                navigation,
             }
         });
         const markdownRender = await renderMarkdown(plainPage);
 
-        const themeFile = path.join(config.themePath, 'default.tmpl');
+        const topLevelTemplate = (template.yaml as any)['template'] ? (template.yaml as any)['template'] : 'default.tmpl'
+        const themeFile = path.join(config.themePath, topLevelTemplate);
         const wrappingTemplate = await createTemplateFromFile(themeFile);
 
         // Wrapping template will be the template that displays the styles etc
         // so copy template styles and scripts over
-        wrappingTemplate.styles.add(template.styles);
+        wrappingTemplate.styles.prepend(template.styles);
         wrappingTemplate.scripts.add(template.scripts);
 
         for (const t of markdownRender.tokens) {
@@ -43,17 +41,17 @@ async function run(inputPath: string, config: Config, navtree: Array<NavNode>, n
             if (styles.inline) {
                 for (const filePath of styles.inline) {
                     const buffer = await fs.readFile(filePath);
-                    wrappingTemplate.styles.inline.add(filePath, buffer.toString());
+                    wrappingTemplate.styles.inline.prepend(filePath, buffer.toString());
                 }
             }
             if (styles.sync) {
                 for (const filePath of styles.sync) {
-                    wrappingTemplate.styles.sync.add(filePath, filePath);
+                    wrappingTemplate.styles.sync.prepend(filePath, filePath);
                 }
             }
             if (styles.async) {
               for (const filePath of styles.async) {
-                wrappingTemplate.styles.async.add(filePath, filePath);
+                wrappingTemplate.styles.async.prepend(filePath, filePath);
             }
             }
           }
@@ -63,8 +61,7 @@ async function run(inputPath: string, config: Config, navtree: Array<NavNode>, n
         const wrappedHTML = await wrappingTemplate.render({
             topLevel: {
                 content: markdownRender.html,
-                navtree,
-                navgroups,
+                navigation,
                 page: template.yaml
             },
         });
@@ -95,7 +92,7 @@ async function run(inputPath: string, config: Config, navtree: Array<NavNode>, n
     }
 }
 
-export async function start(args: Array<string>, config: Config, navtree: Array<NavNode> = [], navgroups: {[id: string]: NavNode} = {}): Promise<Message> {
+export async function start(args: Array<string>, config: Config, navigation: {[id: string]: Array<NavNode>} = {}): Promise<Message> {
     if (args.length != 3) {
         logger.warn('Unexpected number of process args passed to file-processor: ', process.argv);
         return {
@@ -103,7 +100,7 @@ export async function start(args: Array<string>, config: Config, navtree: Array<
         };
     }
 
-    return run(args[2], config, navtree, navgroups);
+    return run(args[2], config, navigation);
 }
 
 let isRunning = false;
@@ -111,12 +108,12 @@ process.on('message', (msg: any) => {
   switch(msg.name) {
     case RUN_WITH_DETAILS_MSG: {
       if (isRunning) {
-          console.log('File processor already running, ignoring msg: ', msg);
+          logger.warn('File processor already running, ignoring msg: ', msg);
           return;
       }
 
       isRunning = true;
-      start(process.argv, msg.config, msg.navtree, msg.mavgroups).then((msg) => {
+      start(process.argv, msg.config, msg.navigation).then((msg) => {
         process.send(msg);
         process.exit(0);
       })

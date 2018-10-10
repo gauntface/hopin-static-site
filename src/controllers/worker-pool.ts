@@ -32,7 +32,7 @@ export class WorkerPool {
     }
 
     async start(processName: string): Promise<{[key:string]: FileProcessorResult|Error}> {
-        const {navtree, navgroup} = await getNavTree(this.config);
+        const navigation = await getNavTree(this.config);
 
         const jobResults: {[key:string]: FileProcessorResult|Error} = {};
 
@@ -41,7 +41,7 @@ export class WorkerPool {
             await this.getFreeSpot();
             this.processCount++;
             const job = this.jobs[i];
-            promises.push(this.runWorker(processName, job, navtree, navgroup, (msg: Message) => {
+            promises.push(this.runWorker(processName, job, navigation, (msg: Message) => {
                 if (msg.result) {
                     jobResults[job] = msg.result;
                 } else if (msg.error) {
@@ -73,14 +73,13 @@ export class WorkerPool {
         }
     }
 
-    private async runWorker(processName: string, job: string, navtree: Array<NavNode>, navgroups: {[id: string]: NavNode}, cb: (msg: Message) => void): Promise<void> {
+    private async runWorker(processName: string, job: string, navigation: {[id: string]: Array<NavNode>}, cb: (msg: Message) => void): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const forkedProcess = fork(processName, [job]);
             forkedProcess.send({
                 name: RUN_WITH_DETAILS_MSG,
                 config: this.config,
-                navtree,
-                navgroups,
+                navigation,
             });
             forkedProcess.on('message', (msg: Message) => {
                 cb(msg);

@@ -7,6 +7,7 @@ import { Config } from './config';
 
 type PageInfo = {
     path: string
+    hidden: boolean
     subnav: string|Array<PageInfo>
 }
 
@@ -14,14 +15,16 @@ export class NavNode {
     pagePath: string|null
     title: string
     url: string
+    hidden: boolean
     yaml: {}
     leafNodes: Array<NavNode>
 
     // tslint:disable-next-line:no-any
-    constructor(pagePath: string|null, title: string, url: string, yaml: any, leafNodes: Array<NavNode>) {
+    constructor(pagePath: string|null, title: string, url: string, hidden: boolean, yaml: any, leafNodes: Array<NavNode>) {
         this.pagePath = pagePath;
         this.title = title;
         this.url = url;
+        this.hidden = hidden ? true : false;
         this.yaml = yaml;
         this.leafNodes = leafNodes;
     }
@@ -40,17 +43,20 @@ async function parseNavigation(relativePath: string, navigation: null|string|Arr
     return navigation;
 }
 
-async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string, relativeNavigationFilePath: string, pagePath: null|string, navigation: Array<PageInfo>): Promise<NavNode> {
+async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string, relativeNavigationFilePath: string, pageInfo: PageInfo, navigation: Array<PageInfo>): Promise<NavNode> {
     const leafNodes: Array<NavNode> = [];
     if (navigation) {
         for (const page of navigation) {
             const subnav = await parseNavigation(relativeNavigationFilePath, page.subnav);
-            leafNodes.push(await getNavNode(pageIDs, contentPath, relativeNavigationFilePath, page.path, subnav));
+            const node = await getNavNode(pageIDs, contentPath, relativeNavigationFilePath, page, subnav);
+            if (!node.hidden) {
+                leafNodes.push(node);
+            }
         }
     }
 
     // TODO: Get YAML from page path
-    const absolutePath = path.resolve(relativeNavigationFilePath, pagePath);
+    const absolutePath = path.resolve(relativeNavigationFilePath, pageInfo.path);
     const pageContents = await fs.readFile(absolutePath);
     const frontMatter = matter(pageContents);
     // tslint:disable-next-line:no-any
@@ -59,23 +65,24 @@ async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string,
     const relativeFilePath = path.relative(contentPath, absolutePath);
     const url = path.join('/', relativeFilePath.replace('index.md', '').replace('.md', '.html'));
 
-    const navNode = new NavNode(pagePath, yaml.title, url, yaml, leafNodes);
+    const navNode = new NavNode(pageInfo.path, yaml.title, url, pageInfo.hidden, yaml, leafNodes);
     if (yaml.id) {
         pageIDs[yaml.id] = navNode;
     }
+
     return navNode;
 }
 
-export async function getNavTree(config: Config): Promise<{navtree: Array<NavNode>, navgroup: {[id: string]: NavNode}}> {
+export async function getNavTree(config: Config): Promise<{[id: string]: Array<NavNode>}> {
     if (!config.navigationFile) {
-        return {navtree: [], navgroup: {}};
+        return {};
     }
 
     try {
         await fs.access(config.navigationFile);
     } catch (err) {
         logger.warn(`Unable to find navigation file '${config.navigationFile}'. No navigation will be included in build.`);
-        return {navtree: [], navgroup: {}};
+        return {};
     }
 
     let navigation: Array<PageInfo> = [];
@@ -93,9 +100,12 @@ export async function getNavTree(config: Config): Promise<{navtree: Array<NavNod
     const topNav = await parseNavigation(path.dirname(config.navigationFile), navigation);
     const pages: Array<NavNode> = [];
     const pageIDs: {[id: string]: NavNode} = {};
-    for (const pagePath of topNav) {
-        const nav = await parseNavigation(path.dirname(config.navigationFile), pagePath.subnav);
-        pages.push(await getNavNode(pageIDs, config.contentPath, path.dirname(config.navigationFile), pagePath.path, nav));
+    for (const pageInfo of topNav) {
+        const nav = await parseNavigation(path.dirname(config.navigationFile), pageInfo.subnav);
+        const node = await getNavNode(pageIDs, config.contentPath, path.dirname(config.navigationFile), pageInfo, nav);
+        if (!pageInfo.hidden) {
+            pages.push(node);
+        }
     }
-    return {navtree: pages, navgroup: pageIDs};
+    return Object.assign(pageIDs, {pages});
 }

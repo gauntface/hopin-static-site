@@ -13,6 +13,7 @@ export type Config = {
   contentPath: string
   outputPath: string
   themePath: string
+  staticPath: string
   navigationFile: string
   markdownExtension: string
   workPoolSize: number
@@ -29,6 +30,7 @@ function getDefaults(buildDir: string): Config {
     navigationFile: path.join(buildDir, 'content', 'navigation.json'),
     outputPath: path.join(buildDir, 'build', path.sep),
     themePath: path.join(__dirname, '..', 'themes', 'default'),
+    staticPath: path.join(buildDir, 'static', path.sep),
     markdownExtension: 'md',
     workPoolSize: 10,
     tokenAssets: {},
