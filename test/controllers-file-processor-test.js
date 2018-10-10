@@ -26,12 +26,12 @@ test('file-processor.start() should render file contents for valid file', async 
     const inputPath = path.join(contentFilesPath, 'index.md');
     const msg = await start(['', '', inputPath], {
         contentPath: contentFilesPath,
-        outputPath: tmpDir, 
+        outputPath: tmpDir,
         themePath: path.join(projectFilePath, 'theme'),
         tokenAssets: {
             h1: {
                 styles: {
-                    inline: '.h1-inline{}',
+                    inline: './theme/static/styles/h1-inline.css',
                     sync: '/styles/h1-sync.css',
                     async: '/styles/h1-async.css',
                 },
