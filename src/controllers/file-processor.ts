@@ -83,16 +83,12 @@ async function run(inputPath: string, config: Config, navigation: {[id: string]:
     }
 
     // Finally render the content in the wrapping template
-    const wrappedMD = await wrappingTemplate.render({
+    const wrappedHTML = await wrappingTemplate.render({
         topLevel: {
             content: markdownRender.html,
             navigation,
             page: template.yaml
         },
-    });
-
-    const wrappedHTML = await renderMarkdown(wrappedMD, {
-        staticDir: config.staticPath,
     });
 
     const relativePath = path.relative(config.contentPath, inputPath);
@@ -104,7 +100,7 @@ async function run(inputPath: string, config: Config, navigation: {[id: string]:
 
     const outputPath = path.join(config.outputPath, path.format(relPathPieces));
     await fs.mkdirp(path.dirname(outputPath));
-    await fs.writeFile(outputPath, wrappedHTML.html);
+    await fs.writeFile(outputPath, wrappedHTML);
 
     return {
         result: {

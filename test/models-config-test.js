@@ -35,6 +35,7 @@ test('getConfig() should handle a null config path and return a valid config obj
 	t.deepEqual(config, {
 		contentPath: path.join(buildDir, 'content', path.sep),
 		outputPath: path.join(buildDir, 'build', path.sep),
+		staticPath: '/example/static/',
 		themePath: path.join(__dirname, '..', 'build', 'themes', 'default'),
 		navigationFile: path.join(buildDir, 'content', 'navigation.json'),
 		markdownExtension: 'md',
@@ -49,6 +50,7 @@ test('getConfig() should parse, validate and return a valid config object using 
 	t.deepEqual(config, {
 		contentPath: path.join(buildDir, 'content', path.sep),
 		outputPath: path.join(buildDir, 'build', path.sep),
+		staticPath: '/example/static/',
 		themePath: path.join(__dirname, '..', 'build', 'themes', 'default'),
 		navigationFile: path.join(buildDir, 'content', 'navigation.json'),
 		markdownExtension: 'md',
@@ -64,15 +66,16 @@ test('getConfig() should parse, validate and return a valid config object using 
 		contentPath: path.join(configsPath, 'custom-content-path'),
 		outputPath: path.join(configsPath, 'custom-output-path'),
 		themePath: path.join(configsPath, 'custom-theme'),
+		staticPath: './custom-static/',
 		navigationFile: path.join(configsPath, 'custom-nav-path', 'nav.json'),
 		markdownExtension: 'markdown',
 		workPoolSize: 20,
 		tokenAssets: {
 			h1: {
 				styles: {
-					inline: '.inline{}',
-					sync: '/styles/sync.css',
-					async: '/styles/async.css',
+					inline: [path.join(configsPath, '..', 'projects', 'valid-project', 'theme', 'static', 'styles', 'inline.css')],
+					sync: ['/styles/sync.css'],
+					async: ['/styles/async.css'],
 				}
 			},
 		},
