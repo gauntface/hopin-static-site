@@ -9,87 +9,116 @@ import { Config } from '../models/config';
 import {NavNode} from '../models/nav-tree';
 
 async function run(inputPath: string, config: Config, navigation: {[id: string]: Array<NavNode>}): Promise<Message> {
-    // TODO: Check files exist first
-    try {
-        const template = await createTemplateFromFile(inputPath);
+  // TODO: Check files exist first
+  try {
+    const template = await createTemplateFromFile(inputPath);
 
-        // Render the original page and run it through the markdown parser
-        const plainPage = await template.render({
-            topLevel: {
-                navigation,
-            }
-        });
-        const markdownRender = await renderMarkdown(plainPage);
+    // Render the original page and run it through the markdown parser
+    const plainPage = await template.render({
+        topLevel: {
+            navigation,
+        }
+    });
+    const markdownRender = await renderMarkdown(plainPage, {
+        staticDir: config.staticPath,
+    });
 
-        const topLevelTemplate = (template.yaml as any)['template'] ? (template.yaml as any)['template'] : 'default.tmpl'
-        const themeFile = path.join(config.themePath, topLevelTemplate);
-        const wrappingTemplate = await createTemplateFromFile(themeFile);
+    const topLevelTemplate = (template.yaml as any)['template'] ? (template.yaml as any)['template'] : 'default.tmpl'
+    const themeFile = path.join(config.themePath, topLevelTemplate);
+    const wrappingTemplate = await createTemplateFromFile(themeFile);
 
-        // Wrapping template will be the template that displays the styles etc
-        // so copy template styles and scripts over
-        wrappingTemplate.styles.prepend(template.styles);
-        wrappingTemplate.scripts.add(template.scripts);
+    // Wrapping template will be the template that displays the styles etc
+    // so copy template styles and scripts over
+    wrappingTemplate.styles.prepend(template.styles);
+    wrappingTemplate.scripts.add(template.scripts);
 
-        for (const t of markdownRender.tokens) {
-          const tokenAssets = config.tokenAssets[t];
-          if (!tokenAssets) {
-            continue;
-          }
+    for (const t of markdownRender.tokens) {
+      const tokenAssets = config.tokenAssets[t];
+      if (!tokenAssets) {
+        continue;
+      }
 
-          if (tokenAssets.styles) {
-            const styles = tokenAssets.styles;
-            if (styles.inline) {
-                for (const filePath of styles.inline) {
-                    const buffer = await fs.readFile(filePath);
-                    wrappingTemplate.styles.inline.prepend(filePath, buffer.toString());
-                }
+      if (tokenAssets.styles) {
+        const styles = tokenAssets.styles;
+        if (styles.inline) {
+            for (const filePath of styles.inline) {
+                const buffer = await fs.readFile(filePath);
+                wrappingTemplate.styles.inline.prepend(filePath, buffer.toString());
             }
-            if (styles.sync) {
-                for (const filePath of styles.sync) {
-                    wrappingTemplate.styles.sync.prepend(filePath, filePath);
-                }
+        }
+        if (styles.sync) {
+            for (const filePath of styles.sync) {
+                wrappingTemplate.styles.sync.prepend(filePath, filePath);
             }
-            if (styles.async) {
-              for (const filePath of styles.async) {
-                wrappingTemplate.styles.async.prepend(filePath, filePath);
-            }
-            }
+        }
+        if (styles.async) {
+          for (const filePath of styles.async) {
+            wrappingTemplate.styles.async.prepend(filePath, filePath);
           }
         }
+      }
 
-        // Finally render the content in the wrapping template
-        const wrappedHTML = await wrappingTemplate.render({
-            topLevel: {
-                content: markdownRender.html,
-                navigation,
-                page: template.yaml
-            },
-        });
-
-        const relativePath = path.relative(config.contentPath, inputPath);
-
-        // replace .md with .html
-        const relPathPieces = path.parse(relativePath);
-        delete relPathPieces.base;
-        relPathPieces.ext = '.html';
-
-        const outputPath = path.join(config.outputPath, path.format(relPathPieces));
-        await fs.mkdirp(path.dirname(outputPath));
-        await fs.writeFile(outputPath, wrappedHTML);
-
-        return {
-            result: {
-                inputPath,
-                outputPath,
+      if (tokenAssets.scripts) {
+        const scripts = tokenAssets.scripts;
+        if (scripts.inline) {
+            for (const filePath of scripts.inline) {
+                const buffer = await fs.readFile(filePath);
+                wrappingTemplate.scripts.inline.prepend(filePath, {
+                  src: buffer.toString(),
+                  type: path.extname(filePath) === '.mjs' ? 'module' : 'nomodule',
+                });
             }
-        };
-    } catch (err) {
-        logger.error('File Processor run failed.');
-        logger.error(err);
-        return {
-            error: `Unable to read and parse: ${err.message}`,
-        };
+        }
+        if (scripts.sync) {
+            for (const filePath of scripts.sync) {
+                wrappingTemplate.scripts.sync.prepend(filePath, filePath);
+            }
+        }
+        if (scripts.async) {
+          for (const filePath of scripts.async) {
+            wrappingTemplate.scripts.async.prepend(filePath, filePath);
+          }
+        }
+      }
     }
+
+    // Finally render the content in the wrapping template
+    const wrappedMD = await wrappingTemplate.render({
+        topLevel: {
+            content: markdownRender.html,
+            navigation,
+            page: template.yaml
+        },
+    });
+
+    const wrappedHTML = await renderMarkdown(wrappedMD, {
+        staticDir: config.staticPath,
+    });
+
+    const relativePath = path.relative(config.contentPath, inputPath);
+
+    // replace .md with .html
+    const relPathPieces = path.parse(relativePath);
+    delete relPathPieces.base;
+    relPathPieces.ext = '.html';
+
+    const outputPath = path.join(config.outputPath, path.format(relPathPieces));
+    await fs.mkdirp(path.dirname(outputPath));
+    await fs.writeFile(outputPath, wrappedHTML.html);
+
+    return {
+        result: {
+            inputPath,
+            outputPath,
+        }
+    };
+  } catch (err) {
+    logger.error('File Processor run failed.');
+    logger.error(err);
+    return {
+        error: `Unable to read and parse: ${err.message}`,
+    };
+  }
 }
 
 export async function start(args: Array<string>, config: Config, navigation: {[id: string]: Array<NavNode>} = {}): Promise<Message> {

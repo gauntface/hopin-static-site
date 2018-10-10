@@ -9,6 +9,12 @@ export type Style = {
   async?: Array<string>
 }
 
+export type Script = {
+  inline?: Array<string>,
+  sync?: Array<string>,
+  async?: Array<string>,
+}
+
 export type Config = {
   contentPath: string
   outputPath: string
@@ -20,6 +26,7 @@ export type Config = {
   tokenAssets: {
     [key: string]: {
       styles: Style,
+      scripts: Script,
     }
   }
 }
@@ -55,7 +62,7 @@ async function validateConfig(config: any, buildDir: string, configPath: string)
       config[field] = path.resolve(path.dirname(configPath), config[field]);
     }
   }
-  
+
   if (config.tokenAssets) {
     for (const t of Object.keys(config.tokenAssets)) {
       const asset = config.tokenAssets[t];
@@ -79,11 +86,11 @@ async function readConfig(configPath: string|null): Promise<Config> {
   const resolvedPath = path.resolve(configPath);
   try {
     await fs.access(resolvedPath);
-    
+
   } catch(err) {
     throw new Error(`Unable to access config path: ${configPath}.`)
   }
-  
+
   const configBuffer = await fs.readFile(resolvedPath);
   const configContents = configBuffer.toString();
   try {
