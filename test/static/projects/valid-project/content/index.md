@@ -1,15 +1,16 @@
 ---
 example: 'example yaml'
+title: 'Example title'
 styles:
   inline:
-    - ../styles/index-inline.css
+    - ../theme/static/styles/index-inline.css
   sync:
     - /styles/index-sync.css
   async:
     - /styles/index-async.css
 scripts:
   inline:
-    - ../scripts/index-inline.js
+    - ../theme/static/scripts/index-inline.js
   sync:
     - /scripts/index-sync.js
   async:

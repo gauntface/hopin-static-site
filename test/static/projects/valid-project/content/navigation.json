@@ -1,0 +1,18 @@
+[
+    {
+        "path": "index.md"
+    },
+    {
+        "path": "page.md",
+        "subnav": [
+            {
+                "path": "directory/nested-page.md",
+                "subnav": [
+                    {
+                        "path": "directory/directory-2/nested-page-2.md",
+                    }
+                ]
+            }
+        ]
+    }
+]

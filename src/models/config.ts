@@ -4,20 +4,29 @@ import * as json5 from 'json5';
 import { DEFAULT_CONFIG } from 'tslint/lib/configuration';
 
 export type Style = {
-  inline?: string
-  sync?: string
-  async?: string
+  inline?: Array<string>
+  sync?: Array<string>
+  async?: Array<string>
+}
+
+export type Script = {
+  inline?: Array<string>,
+  sync?: Array<string>,
+  async?: Array<string>,
 }
 
 export type Config = {
   contentPath: string
   outputPath: string
+  themePath: string
+  staticPath: string
+  navigationFile: string
   markdownExtension: string
   workPoolSize: number
-  defaultHTMLTmpl: string
   tokenAssets: {
     [key: string]: {
       styles: Style,
+      scripts: Script,
     }
   }
 }
@@ -25,9 +34,11 @@ export type Config = {
 function getDefaults(buildDir: string): Config {
   return {
     contentPath: path.join(buildDir, 'content', path.sep),
+    navigationFile: path.join(buildDir, 'content', 'navigation.json'),
     outputPath: path.join(buildDir, 'build', path.sep),
+    themePath: path.join(__dirname, '..', 'themes', 'default'),
+    staticPath: path.join(buildDir, 'static', path.sep),
     markdownExtension: 'md',
-    defaultHTMLTmpl: path.join(__dirname, '..', 'assets', 'default.tmpl'),
     workPoolSize: 10,
     tokenAssets: {},
   };
@@ -43,7 +54,8 @@ async function validateConfig(config: any, buildDir: string, configPath: string)
   const fields = [
     'contentPath',
     'outputPath',
-    'defaultHTMLTmpl',
+    'themePath',
+    'navigationFile',
   ];
   for (const field of fields) {
     if (config[field]) {
@@ -51,18 +63,20 @@ async function validateConfig(config: any, buildDir: string, configPath: string)
     }
   }
 
-  
   if (config.tokenAssets) {
     for (const t of Object.keys(config.tokenAssets)) {
       const asset = config.tokenAssets[t];
       if (asset.styles && asset.styles.inline) {
-        const absPath = path.resolve(path.dirname(configPath), asset.styles.inline);
-        const buffer = await fs.readFile(absPath);
-        config.tokenAssets[t].styles.inline = buffer.toString();
+        const inlineContents = [];
+        for (const inline of asset.styles.inline) {
+          const absPath = path.resolve(path.dirname(configPath), inline);
+          inlineContents.push(absPath);
+        }
+        config.tokenAssets[t].styles.inline = inlineContents;
       }
     }
   }
-  
+
   // Merge defaults with config
   return  Object.assign({}, getDefaults(buildDir), config);
 }
@@ -72,11 +86,11 @@ async function readConfig(configPath: string|null): Promise<Config> {
   const resolvedPath = path.resolve(configPath);
   try {
     await fs.access(resolvedPath);
-    
+
   } catch(err) {
     throw new Error(`Unable to access config path: ${configPath}.`)
   }
-  
+
   const configBuffer = await fs.readFile(resolvedPath);
   const configContents = configBuffer.toString();
   try {
