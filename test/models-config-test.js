@@ -40,6 +40,7 @@ test('getConfig() should handle a null config path and return a valid config obj
 		navigationFile: path.join(buildDir, 'content', 'navigation.json'),
 		markdownExtension: 'md',
 		workPoolSize: 10,
+		origin: '',
 		tokenAssets: {},
 	});
 });
@@ -55,6 +56,7 @@ test('getConfig() should parse, validate and return a valid config object using 
 		navigationFile: path.join(buildDir, 'content', 'navigation.json'),
 		markdownExtension: 'md',
 		workPoolSize: 10,
+		origin: '',
 		tokenAssets: {},
 	});
 });
@@ -70,6 +72,7 @@ test('getConfig() should parse, validate and return a valid config object using 
 		navigationFile: path.join(configsPath, 'custom-nav-path', 'nav.json'),
 		markdownExtension: 'markdown',
 		workPoolSize: 20,
+		origin: "https://example.com",
 		tokenAssets: {
 			h1: {
 				styles: {

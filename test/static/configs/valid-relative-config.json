@@ -6,6 +6,7 @@
   "navigationFile": "./custom-nav-path/nav.json",
   "markdownExtension": "markdown",
   "workPoolSize": 20,
+  "origin": "https://example.com",
   "tokenAssets": {
     "h1": {
       "styles": {

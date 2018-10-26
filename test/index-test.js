@@ -13,7 +13,7 @@ test('buildSite() should successfully build a site', async (t) => {
 
 	const buildFiles = await fs.readdir(projectBuildPath);
 	
-	t.deepEqual(buildFiles, ['directory', 'index.html', 'page.html', 'scripts', 'styles']);
+	t.deepEqual(buildFiles, ['directory', 'index.html', 'page.html', 'scripts', 'sitemap.xml', 'styles']);
 
 	t.pass();
 });
