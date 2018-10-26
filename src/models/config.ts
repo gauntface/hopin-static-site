@@ -23,6 +23,7 @@ export type Config = {
   navigationFile: string
   markdownExtension: string
   workPoolSize: number
+  origin: string
   tokenAssets: {
     [key: string]: {
       styles: Style,
@@ -40,6 +41,7 @@ function getDefaults(buildDir: string): Config {
     staticPath: path.join(buildDir, 'static', path.sep),
     markdownExtension: 'md',
     workPoolSize: 10,
+    origin: '',
     tokenAssets: {},
   };
 }

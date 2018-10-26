@@ -51,7 +51,7 @@ export class SiteGenerator {
 ${
   urls.map((url) => {
     return `<url>
-  <loc>${url}</loc>
+  <loc>${config.origin}${url}</loc>
 </url>`;
   }).join('\n')
 }
