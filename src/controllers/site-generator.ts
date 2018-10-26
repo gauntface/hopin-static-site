@@ -41,6 +41,23 @@ export class SiteGenerator {
       throw new Error(`${errors} errors occured.`);
     }
 
+    const urls = mdFiles.map((file) => {
+      const relativeFilePath = path.relative(config.contentPath, file);
+      const url = path.join('/', relativeFilePath.replace('index.md', '').replace('.md', '.html'));
+      return url;
+    }).sort();
+    const sitemapString = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${
+  urls.map((url) => {
+    return `<url>
+  <loc>${url}</loc>
+</url>`;
+  }).join('\n')
+}
+</urlset>`;
+    await fs.writeFile(path.join(config.outputPath, 'sitemap.xml'), sitemapString);
+
     // Copy over static/ files from theme
     const themeStatic = path.join(config.themePath, 'static');
     let staticExists = false;
