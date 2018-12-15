@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { logger } from '@hopin/logger';
 
+import { logger } from '../utils/logger';
 import {getConfig} from '../models/config';
 import {getMarkdownFiles} from '../models/markdown-files';
 import {WorkerPool} from './worker-pool';
