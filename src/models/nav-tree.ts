@@ -1,9 +1,10 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import {logger} from '@hopin/logger';
 import * as json5 from 'json5';
 import * as matter from 'gray-matter';
+
 import { Config } from './config';
+import { logger } from '../utils/logger';
 
 type PageInfo = {
     path: string

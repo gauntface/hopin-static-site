@@ -2,8 +2,8 @@ import {createTemplateFromFile} from '@hopin/render';
 import {renderMarkdown} from '@hopin/markdown';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { logger } from '@hopin/logger';
 
+import { logger } from '../utils/logger';
 import { Message, RUN_WITH_DETAILS_MSG } from './worker-pool';
 import { Config } from '../models/config';
 import {NavNode} from '../models/nav-tree';

@@ -1,6 +1,6 @@
 import {fork, ChildProcess} from 'child_process';
-import { logger } from '@hopin/logger';
 
+import { logger } from '../utils/logger';
 import { Config } from '../models/config';
 import { getNavTree,NavNode } from '../models/nav-tree';
 
