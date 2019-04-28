@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import * as meow from 'meow';
-import {buildSite} from './index';
+import {buildSiteFromFile} from './index';
 
 const cli = meow(`
 	Usage
@@ -17,4 +17,4 @@ const cli = meow(`
 	}
 });
 
-buildSite(cli.flags.config);
+buildSiteFromFile(cli.flags.config);

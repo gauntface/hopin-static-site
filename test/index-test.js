@@ -2,14 +2,14 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import test from 'ava';
 
-import {buildSite} from '../build/index';
+import {buildSiteFromFile} from '../build/index';
 
 const projectPath = path.join(__dirname, 'static', 'projects', 'valid-project');
 const projectBuildPath = path.join(projectPath, 'build');
 
-test('buildSite() should successfully build a site', async (t) => {
+test('buildSiteFromFile() should successfully build a site', async (t) => {
 	await fs.remove(projectBuildPath);
-	await buildSite(projectPath);
+	await buildSiteFromFile(projectPath);
 
 	const buildFiles = await fs.readdir(projectBuildPath);
 	
