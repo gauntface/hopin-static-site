@@ -2,14 +2,13 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 
 import { logger } from '../utils/logger';
-import {getConfig} from '../models/config';
+import {Config} from '../models/config';
 import {getMarkdownFiles} from '../models/markdown-files';
 import {WorkerPool} from './worker-pool';
 
 
 export class SiteGenerator {
-  async build(buildDir: string, configPath: string|null) {
-    const config = await getConfig(buildDir, configPath);
+  async build(buildDir: string, config: Config) {
     logger.log('🔧 Config......');
     logger.log(`    🏗️ Building In : ${path.relative(process.cwd(), buildDir)}`);
     logger.log(`    📓 Content     : ${path.relative(buildDir, config.contentPath)}`);

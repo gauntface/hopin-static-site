@@ -2,10 +2,13 @@ import * as process from 'process';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 
+import {getConfig, Config} from './models/config';
 import {logger} from './utils/logger';
 import {SiteGenerator} from './controllers/site-generator';
 
-export async function buildSite(configPath: any) {
+export {Config} from './models/config';
+
+export async function buildSiteFromFile(configPath: any) {
   let buildDir = process.cwd();
 
   // TODO: Type checking on config path
@@ -27,12 +30,20 @@ export async function buildSite(configPath: any) {
       } catch(err) {
         configPath = null;
       }
+    } else {
+      buildDir = path.dirname(configPath);
     }
   }
 
+  const config = await getConfig(buildDir, configPath);
+
+  return buildSite(buildDir, config);
+}
+
+export async function buildSite(relativePath: string, config: Config) {
   const siteGen = new SiteGenerator();
   try {
-    await siteGen.build(buildDir, configPath);
+    await siteGen.build(relativePath, config);
     logger.log(`✔️ C'est fini.`);
   } catch (err) {
     logger.error('❌ Unable to build site.');
