@@ -1,7 +1,7 @@
 import test from 'ava';
 import * as path from 'path';
 
-import {getConfig} from '../build/models/config';
+import {getConfig, validateConfig} from '../build/models/config';
 
 const configsPath = path.join(__dirname, 'static', 'configs');
 
@@ -23,7 +23,9 @@ test('getConfig() should throw for bad json file', async (t) => {
 
 test('getConfig() should throw for an array json file', async (t) => {
 	try {
-		await getConfig(configsPath, path.join(configsPath, 'array.json'));
+		const relPath = path.join(configsPath, 'array.json');
+		const config = await getConfig(configsPath, relPath);
+		await validateConfig(config, relPath);
 	} catch (err) {
 		t.deepEqual(err.message, 'Invalid Config, expected an object. Parsed config is: []');
 	}
@@ -31,10 +33,11 @@ test('getConfig() should throw for an array json file', async (t) => {
 
 test('getConfig() should handle a null config path and return a valid config object using default values', async (t) => {
 	const buildDir = path.join(path.sep, 'example')
-	const config = await getConfig(buildDir);
+	let config = await getConfig(buildDir);
+	config = await validateConfig(config, buildDir);
 	t.deepEqual(config, {
-		contentPath: path.join(buildDir, 'content', path.sep),
-		outputPath: path.join(buildDir, 'build', path.sep),
+		contentPath: path.join(buildDir, 'content'),
+		outputPath: path.join(buildDir, 'build'),
 		staticPath: '/example/static/',
 		themePath: path.join(__dirname, '..', 'build', 'themes', 'default'),
 		navigationFile: path.join(buildDir, 'content', 'navigation.json'),
@@ -47,7 +50,8 @@ test('getConfig() should handle a null config path and return a valid config obj
 
 test('getConfig() should parse, validate and return a valid config object using default values for empty config file', async (t) => {
 	const buildDir = path.join(path.sep, 'example')
-	const config = await getConfig(buildDir, path.join(configsPath, 'valid-empty-config.json'));
+	let config = await getConfig(buildDir, path.join(configsPath, 'valid-empty-config.json'));
+	config = await validateConfig(config, buildDir);
 	t.deepEqual(config, {
 		contentPath: path.join(buildDir, 'content', path.sep),
 		outputPath: path.join(buildDir, 'build', path.sep),
@@ -63,20 +67,21 @@ test('getConfig() should parse, validate and return a valid config object using 
 
 test('getConfig() should parse, validate and return a valid config object using custom relative values', async (t) => {
 	const buildDir = path.join(path.sep, 'example')
-	const config = await getConfig(buildDir, path.join(configsPath, 'valid-relative-config.json'));
+	let config = await getConfig(buildDir, path.join(configsPath, 'valid-relative-config.json'));
+	config = await validateConfig(config, buildDir);
 	t.deepEqual(config, {
-		contentPath: path.join(configsPath, 'custom-content-path'),
-		outputPath: path.join(configsPath, 'custom-output-path'),
-		themePath: path.join(configsPath, 'custom-theme'),
+		contentPath: path.join(buildDir, 'custom-content-path'),
+		outputPath: path.join(buildDir, 'custom-output-path'),
+		themePath: path.join(buildDir, 'custom-theme'),
 		staticPath: './custom-static/',
-		navigationFile: path.join(configsPath, 'custom-nav-path', 'nav.json'),
+		navigationFile: path.join(buildDir, 'custom-nav-path', 'nav.json'),
 		markdownExtension: 'markdown',
 		workPoolSize: 20,
 		origin: "https://example.com",
 		tokenAssets: {
 			h1: {
 				styles: {
-					inline: [path.join(configsPath, '..', 'projects', 'valid-project', 'theme', 'static', 'styles', 'inline.css')],
+					inline: [path.join(buildDir, '..', 'projects', 'valid-project', 'theme', 'static', 'styles', 'inline.css')],
 					sync: ['/styles/sync.css'],
 					async: ['/styles/async.css'],
 				}
