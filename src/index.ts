@@ -2,7 +2,7 @@ import * as process from 'process';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 
-import {getConfig, Config} from './models/config';
+import {getConfig, validateConfig, Config} from './models/config';
 import {logger} from './utils/logger';
 import {SiteGenerator} from './controllers/site-generator';
 
@@ -40,7 +40,9 @@ export async function buildSiteFromFile(configPath: any) {
   return buildSite(buildDir, config);
 }
 
-export async function buildSite(relativePath: string, config: Config) {
+export async function buildSite(relativePath: string, userConfig: {}) {
+  const config = await validateConfig(userConfig, relativePath);
+
   const siteGen = new SiteGenerator();
   try {
     await siteGen.build(relativePath, config);

@@ -47,10 +47,18 @@ function getDefaults(buildDir: string): Config {
 }
 
 // Takes a parsed json config file and validates it's contents
-async function validateConfig(config: any, buildDir: string, configPath: string): Promise<Config> {
+export async function validateConfig(config: any, relativePath: string): Promise<Config> {
   if (typeof config != 'object' || Array.isArray(config)) {
     throw new Error(`Invalid Config, expected an object. Parsed config is: ${JSON.stringify(config)}`)
   }
+
+  let relPath = relativePath;
+  try {
+    const s = await fs.stat(relPath);
+    if (s.isFile()) {
+      relPath = path.dirname(relPath);
+    }
+  } catch (e) {}
 
   // Normalize relative paths in config to absolute paths
   const fields = [
@@ -61,7 +69,7 @@ async function validateConfig(config: any, buildDir: string, configPath: string)
   ];
   for (const field of fields) {
     if (config[field]) {
-      config[field] = path.resolve(path.dirname(configPath), config[field]);
+      config[field] = path.resolve(relPath, config[field]);
     }
   }
 
@@ -71,7 +79,7 @@ async function validateConfig(config: any, buildDir: string, configPath: string)
       if (asset.styles && asset.styles.inline) {
         const inlineContents = [];
         for (const inline of asset.styles.inline) {
-          const absPath = path.resolve(path.dirname(configPath), inline);
+          const absPath = path.resolve(relPath, inline);
           inlineContents.push(absPath);
         }
         config.tokenAssets[t].styles.inline = inlineContents;
@@ -80,7 +88,7 @@ async function validateConfig(config: any, buildDir: string, configPath: string)
   }
 
   // Merge defaults with config
-  return  Object.assign({}, getDefaults(buildDir), config);
+  return  Object.assign({}, getDefaults(relPath), config);
 }
 
 // Find and read config and validate it's contents
@@ -102,7 +110,7 @@ async function readConfig(configPath: string|null): Promise<Config> {
   }
 }
 
-export async function getConfig(buildDir: string, configPath: string|null): Promise<Config> {
+export async function getConfig(buildDir: string, configPath: string|null): Promise<{}> {
   if (!configPath) {
     return Object.assign({}, getDefaults(buildDir));
   }
@@ -112,5 +120,5 @@ export async function getConfig(buildDir: string, configPath: string|null): Prom
     userConfig = await readConfig(configPath);
   }
 
-  return validateConfig(userConfig, buildDir, configPath);
+  return userConfig;
 }
