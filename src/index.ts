@@ -42,7 +42,6 @@ export async function buildSiteFromFile(configPath: any) {
 
 export async function buildSite(relativePath: string, userConfig: {}) {
   const config = await validateConfig(userConfig, relativePath);
-
   const siteGen = new SiteGenerator();
   try {
     await siteGen.build(relativePath, config);
