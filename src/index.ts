@@ -8,6 +8,7 @@ import {SiteGenerator} from './controllers/site-generator';
 
 export {Config} from './models/config';
 
+// tslint:disable-next-line:no-any
 export async function buildSiteFromFile(configPath: any) {
   let buildDir = process.cwd();
 

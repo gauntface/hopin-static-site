@@ -8,7 +8,7 @@ import { Message, RUN_WITH_DETAILS_MSG } from './worker-pool';
 import { Config } from '../models/config';
 import {NavNode} from '../models/nav-tree';
 
-async function run(inputPath: string, config: Config, navigation: {[id: string]: Array<NavNode>}): Promise<Message> {
+async function run(inputPath: string, config: Config, navigation: {[id: string]: NavNode[]}): Promise<Message> {
   // TODO: Check files exist first
   try {
     const compTmpl = await createComponentTemplateFromFile(inputPath);
@@ -19,11 +19,13 @@ async function run(inputPath: string, config: Config, navigation: {[id: string]:
             navigation,
         }
     }*/);
+
     const markdownRender = await renderMarkdown(compBundle.renderedTemplate, {
         staticDir: config.staticPath,
     });
 
-    const topLevelTemplate = (compTmpl.yaml as any)['template'] ? (compTmpl.yaml as any)['template'] : 'default.tmpl'
+    // tslint:disable-next-line:no-any
+    const topLevelTemplate = (compTmpl.yaml as any)['template'] ? (compTmpl.yaml as any)['template'] : 'default.tmpl';
     const themeFile = path.join(config.themePath, topLevelTemplate);
     const wrappingTemplate = await createHTMLTemplateFromFile(themeFile);
 
@@ -82,6 +84,9 @@ async function run(inputPath: string, config: Config, navigation: {[id: string]:
       }
     }
 
+    // Set the rendered template to be the markdown content
+    compBundle.renderedTemplate = markdownRender.html;
+
     // Finally render the content in the wrapping template
     const wrappedHTML = await wrappingTemplate.render(compBundle/*, {
         topLevel: {
@@ -117,8 +122,8 @@ async function run(inputPath: string, config: Config, navigation: {[id: string]:
   }
 }
 
-export async function start(args: Array<string>, config: Config, navigation: {[id: string]: Array<NavNode>} = {}): Promise<Message> {
-    if (args.length != 3) {
+export async function start(args: string[], config: Config, navigation: {[id: string]: NavNode[]} = {}): Promise<Message> {
+    if (args.length !== 3) {
         logger.warn('Unexpected number of process args passed to file-processor: ', process.argv);
         return {
             error: `Unexpected number of process args: ${JSON.stringify(process.argv)}`,
@@ -129,6 +134,7 @@ export async function start(args: Array<string>, config: Config, navigation: {[i
 }
 
 let isRunning = false;
+// tslint:disable-next-line:no-any
 process.on('message', (msg: any) => {
   switch(msg.name) {
     case RUN_WITH_DETAILS_MSG: {
@@ -145,7 +151,7 @@ process.on('message', (msg: any) => {
       .catch((err) => {
         process.send({error: err});
         process.exit(0);
-      })
+      });
     }
     default: {
       // NOOP
