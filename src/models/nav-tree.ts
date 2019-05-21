@@ -9,19 +9,19 @@ import { logger } from '../utils/logger';
 type PageInfo = {
     path: string
     hidden: boolean
-    subnav: string|Array<PageInfo>
-}
+    subnav: string|PageInfo[]
+};
 
 export class NavNode {
-    pagePath: string|null
-    title: string
-    url: string
-    hidden: boolean
-    yaml: {}
-    leafNodes: Array<NavNode>
+    pagePath: string|null;
+    title: string;
+    url: string;
+    hidden: boolean;
+    yaml: {};
+    leafNodes: NavNode[];
 
     // tslint:disable-next-line:no-any
-    constructor(pagePath: string|null, title: string, url: string, hidden: boolean, yaml: any, leafNodes: Array<NavNode>) {
+    constructor(pagePath: string|null, title: string, url: string, hidden: boolean, yaml: any, leafNodes: NavNode[]) {
         this.pagePath = pagePath;
         this.title = title;
         this.url = url;
@@ -31,21 +31,21 @@ export class NavNode {
     }
 }
 
-async function parseNavigation(relativePath: string, navigation: null|string|Array<PageInfo>): Promise<Array<PageInfo>> {
+async function parseNavigation(relativePath: string, navigation: null|string|PageInfo[]): Promise<PageInfo[]> {
     if (!navigation) {
         return [];
     }
 
     if (typeof navigation === 'string') {
         const navFileBuffer = await fs.readFile(path.resolve(relativePath, navigation));
-        navigation = json5.parse(navFileBuffer.toString()) as Array<PageInfo>;
+        navigation = json5.parse(navFileBuffer.toString()) as PageInfo[];
     }
 
     return navigation;
 }
 
-async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string, relativeNavigationFilePath: string, pageInfo: PageInfo, navigation: Array<PageInfo>): Promise<NavNode> {
-    const leafNodes: Array<NavNode> = [];
+async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string, relativeNavigationFilePath: string, pageInfo: PageInfo, navigation: PageInfo[]): Promise<NavNode> {
+    const leafNodes: NavNode[] = [];
     if (navigation) {
         for (const page of navigation) {
             const subnav = await parseNavigation(relativeNavigationFilePath, page.subnav);
@@ -74,7 +74,7 @@ async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string,
     return navNode;
 }
 
-export async function getNavTree(config: Config): Promise<{[id: string]: Array<NavNode>}> {
+export async function getNavTree(config: Config): Promise<{[id: string]: NavNode[]}> {
     if (!config.navigationFile) {
         return {};
     }
@@ -86,7 +86,7 @@ export async function getNavTree(config: Config): Promise<{[id: string]: Array<N
         return {};
     }
 
-    let navigation: Array<PageInfo> = [];
+    let navigation: PageInfo[] = [];
     if (config.navigationFile) {
         try {
             const navBuffer = await fs.readFile(config.navigationFile);
@@ -99,7 +99,7 @@ export async function getNavTree(config: Config): Promise<{[id: string]: Array<N
     }
 
     const topNav = await parseNavigation(path.dirname(config.navigationFile), navigation);
-    const pages: Array<NavNode> = [];
+    const pages: NavNode[] = [];
     const pageIDs: {[id: string]: NavNode} = {};
     for (const pageInfo of topNav) {
         const nav = await parseNavigation(path.dirname(config.navigationFile), pageInfo.subnav);

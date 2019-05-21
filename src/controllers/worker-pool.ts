@@ -9,19 +9,19 @@ export const RUN_WITH_DETAILS_MSG = 'run-with-details';
 type FileProcessorResult = {
     inputPath: string
     outputPath: string
-}
+};
 
 export type Message =  {
     result?: FileProcessorResult
     error?: string
-}
+};
 
 export class WorkerPool {
-    private config: Config
-    private jobs: Array<string>
-    private processCount: number
+    private config: Config;
+    private jobs: string[];
+    private processCount: number;
 
-    constructor(config: Config, jobs: Array<string>) {
+    constructor(config: Config, jobs: string[]) {
         if (config.workPoolSize <= 0) {
             throw new Error('You must provide a worker pool count of > 0');
         }
@@ -47,7 +47,7 @@ export class WorkerPool {
                 } else if (msg.error) {
                     jobResults[job] = new Error(msg.error);
                 } else {
-                    logger.error(`Unkown worker pool message: ${msg}`)
+                    logger.error(`Unkown worker pool message: ${msg}`);
                 }
 
                 this.processCount--;
@@ -73,7 +73,7 @@ export class WorkerPool {
         }
     }
 
-    private async runWorker(processName: string, job: string, navigation: {[id: string]: Array<NavNode>}, cb: (msg: Message) => void): Promise<void> {
+    private async runWorker(processName: string, job: string, navigation: {[id: string]: NavNode[]}, cb: (msg: Message) => void): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const forkedProcess = fork(processName, [job]);
             forkedProcess.send({

@@ -4,16 +4,16 @@ import * as json5 from 'json5';
 import { DEFAULT_CONFIG } from 'tslint/lib/configuration';
 
 export type Style = {
-  inline?: Array<string>
-  sync?: Array<string>
-  async?: Array<string>
-}
+  inline?: string[]
+  sync?: string[]
+  async?: string[]
+};
 
 export type Script = {
-  inline?: Array<string>,
-  sync?: Array<string>,
-  async?: Array<string>,
-}
+  inline?: string[],
+  sync?: string[],
+  async?: string[],
+};
 
 export type Config = {
   contentPath: string
@@ -30,7 +30,7 @@ export type Config = {
       scripts: Script,
     }
   }
-}
+};
 
 function getDefaults(buildDir: string): Config {
   return {
@@ -47,9 +47,10 @@ function getDefaults(buildDir: string): Config {
 }
 
 // Takes a parsed json config file and validates it's contents
+// tslint:disable-next-line:no-any
 export async function validateConfig(config: any, relativePath: string): Promise<Config> {
-  if (typeof config != 'object' || Array.isArray(config)) {
-    throw new Error(`Invalid Config, expected an object. Parsed config is: ${JSON.stringify(config)}`)
+  if (typeof config !== 'object' || Array.isArray(config)) {
+    throw new Error(`Invalid Config, expected an object. Parsed config is: ${JSON.stringify(config)}`);
   }
 
   let relPath = relativePath;
@@ -98,7 +99,7 @@ async function readConfig(configPath: string|null): Promise<Config> {
     await fs.access(resolvedPath);
 
   } catch(err) {
-    throw new Error(`Unable to access config path: ${configPath}.`)
+    throw new Error(`Unable to access config path: ${configPath}.`);
   }
 
   const configBuffer = await fs.readFile(resolvedPath);

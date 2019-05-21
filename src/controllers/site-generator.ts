@@ -21,7 +21,7 @@ export class SiteGenerator {
     // Worker Pool Start
     const workerPool = new WorkerPool(config, mdFiles);
     const results = await workerPool.start(path.join(__dirname, 'file-processor.js'));
-    let errors = [];
+    const errors = [];
     for (const key of Object.keys(results)) {
       const result = results[key];
       if (result instanceof Error) {
@@ -31,7 +31,7 @@ export class SiteGenerator {
       }
     }
     if (errors.length > 0) {
-      logger.error(`☠️ Build returned ${errors.length} error${errors.length > 1 ? 's' : ''}`)
+      logger.error(`☠️ Build returned ${errors.length} error${errors.length > 1 ? 's' : ''}`);
       for(const err of errors) {
         for (const line of err.split('\n')) {
           console.error(`  ${line}`);
