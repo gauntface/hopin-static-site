@@ -14,6 +14,9 @@
     "access": "public"
   },
   "nyc": {
+    "extension": [
+      ".ts"
+    ],
     "reporter": [
       "text",
       "html"
@@ -25,9 +28,14 @@
   },
   "devDependencies": {
     "@hopin/wbt-ts-node": "0.0.20",
+<<<<<<< HEAD
     "@types/fs-extra": "8.0.0",
+=======
+    "@types/fs-extra": "7.0.0",
+>>>>>>> 02537a0... Adding logic to use theme files
     "@types/glob": "7.1.1",
-    "@types/handlebars": "4.0.40",
+    "@types/handlebars": "4.1.0",
+    "@types/image-size": "^0.7.0",
     "@types/json5": "0.0.30",
     "@types/marked": "0.6.5",
     "@types/meow": "5.0.0",
@@ -39,14 +47,18 @@
   },
   "dependencies": {
     "@hopin/logger": "^2.0.0",
-    "@hopin/markdown": "0.2.0",
-    "@hopin/render": "^4.0.0",
+    "@hopin/markdown": "1.0.0",
+    "@hopin/render": "5.0.0",
     "chalk": "^2.4.1",
     "fs-extra": "^8.0.0",
     "glob": "^7.1.2",
     "gray-matter": "^4.0.1",
+    "htmlparser2": "^3.10.1",
+    "image-size": "^0.7.4",
     "json5": "^2.0.1",
-    "meow": "^5.0.0"
+    "meow": "^5.0.0",
+    "node-html-parser": "^1.1.16",
+    "parse5": "^5.1.0"
   },
   "keywords": [
     "hopin",

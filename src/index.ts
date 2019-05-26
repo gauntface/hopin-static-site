@@ -38,14 +38,14 @@ export async function buildSiteFromFile(configPath: any) {
 
   const config = await getConfig(buildDir, configPath);
 
-  return buildSite(buildDir, config);
+  return buildSite(buildDir, config, {});
 }
 
-export async function buildSite(relativePath: string, userConfig: {}) {
+export async function buildSite(relativePath: string, userConfig: {}, variables: {}) {
   const config = await validateConfig(userConfig, relativePath);
   const siteGen = new SiteGenerator();
   try {
-    await siteGen.build(relativePath, config);
+    await siteGen.build(relativePath, config, variables);
     logger.log(`✔️ C'est fini.`);
   } catch (err) {
     logger.error('❌ Unable to build site.');

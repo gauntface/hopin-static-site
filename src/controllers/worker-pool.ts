@@ -1,7 +1,7 @@
 import {fork, ChildProcess} from 'child_process';
 
 import { logger } from '../utils/logger';
-import { Config } from '../models/config';
+import { InternalConfig } from '../models/config';
 import { getNavTree,NavNode } from '../models/nav-tree';
 
 export const RUN_WITH_DETAILS_MSG = 'run-with-details';
@@ -17,16 +17,18 @@ export type Message =  {
 };
 
 export class WorkerPool {
-    private config: Config;
+    private config: InternalConfig;
+    private variables: {};
     private jobs: string[];
     private processCount: number;
 
-    constructor(config: Config, jobs: string[]) {
+    constructor(config: InternalConfig, variables: {}, jobs: string[]) {
         if (config.workPoolSize <= 0) {
             throw new Error('You must provide a worker pool count of > 0');
         }
 
         this.config = config;
+        this.variables = variables;
         this.jobs = jobs;
         this.processCount = 0;
     }
@@ -79,6 +81,7 @@ export class WorkerPool {
             forkedProcess.send({
                 name: RUN_WITH_DETAILS_MSG,
                 config: this.config,
+                variables: this.variables,
                 navigation,
             });
             forkedProcess.on('message', (msg: Message) => {

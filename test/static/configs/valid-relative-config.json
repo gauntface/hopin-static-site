@@ -1,25 +1,10 @@
 {
   "contentPath": "./custom-content-path/",
   "outputPath": "./custom-output-path/",
-  "themePath": "./custom-theme/",
+  "themePath": "../themes/valid-relative/",
   "staticPath": "./custom-static/",
   "navigationFile": "./custom-nav-path/nav.json",
   "markdownExtension": "markdown",
   "workPoolSize": 20,
   "origin": "https://example.com",
-  "tokenAssets": {
-    "h1": {
-      "styles": {
-        "inline": [
-          "../projects/valid-project/theme/static/styles/inline.css",
-        ],
-        "sync": [
-          "/styles/sync.css",
-        ],
-        "async": [
-          "/styles/async.css",
-        ],
-      },
-    },
-  },
 }

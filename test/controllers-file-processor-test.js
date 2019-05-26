@@ -27,7 +27,9 @@ test('file-processor.start() should render file contents for valid file', async 
     const msg = await start(['', '', inputPath], {
         contentPath: contentFilesPath,
         outputPath: tmpDir,
-        themePath: path.join(projectFilePath, 'theme'),
+        theme: {
+            root: path.join(projectFilePath, 'theme'),
+        },
         tokenAssets: {
             h1: {
                 styles: {
@@ -37,7 +39,7 @@ test('file-processor.start() should render file contents for valid file', async 
                 },
             }
         },
-    });
+    }, {});
     t.falsy(msg.error);
     t.deepEqual(Object.keys(msg), ['result'])
     t.deepEqual(msg.result, {
@@ -46,11 +48,11 @@ test('file-processor.start() should render file contents for valid file', async 
     });
     const buffer = await fs.readFile(msg.result.outputPath);
     t.deepEqual(buffer.toString(), `<html class="default">
-<style>.index-inline{}</style>
 <style>.inline{}</style>
+<style>.index-inline{}</style>
 <style>.h1-inline{}</style>
-<link rel="stylesheet" type="text/css" href="/styles/index-sync.css" />
 <link rel="stylesheet" type="text/css" href="/styles/sync.css" />
+<link rel="stylesheet" type="text/css" href="/styles/index-sync.css" />
 <link rel="stylesheet" type="text/css" href="/styles/h1-sync.css" />
 <h1>HTML</h1>
 
@@ -63,7 +65,7 @@ test('file-processor.start() should render file contents for valid file', async 
 <script src="/scripts/index-async.js" async defer></script>
 <script>
 window.addEventListener('load', function() {
-var __hopin_async_styles = ['/styles/index-async.css','/styles/async.css','/styles/h1-async.css'];
+var __hopin_async_styles = ['/styles/async.css','/styles/index-async.css','/styles/h1-async.css'];
 for(var i = 0; i < __hopin_async_styles.length; i++) {
 var lT = document.createElement('link');
 lT.rel = 'stylesheet';

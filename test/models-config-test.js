@@ -39,12 +39,17 @@ test('getConfig() should handle a null config path and return a valid config obj
 		contentPath: path.join(buildDir, 'content'),
 		outputPath: path.join(buildDir, 'build'),
 		staticPath: '/example/static/',
-		themePath: path.join(__dirname, '..', 'build', 'themes', 'default'),
+		// themePath: path.join(__dirname, '..', 'build', 'themes', 'default'),
+		theme: {
+			root: path.join(__dirname, '..', 'build', 'themes', 'default'),
+		},
 		navigationFile: path.join(buildDir, 'content', 'navigation.json'),
 		markdownExtension: 'md',
 		workPoolSize: 10,
 		origin: '',
 		tokenAssets: {},
+		styles: {},
+		scripts: {},
 	});
 });
 
@@ -56,36 +61,47 @@ test('getConfig() should parse, validate and return a valid config object using 
 		contentPath: path.join(buildDir, 'content', path.sep),
 		outputPath: path.join(buildDir, 'build', path.sep),
 		staticPath: '/example/static/',
-		themePath: path.join(__dirname, '..', 'build', 'themes', 'default'),
+		// themePath: path.join(__dirname, '..', 'build', 'themes', 'default'),
+		theme: {
+			root: path.join(__dirname, '..', 'build', 'themes', 'default'),
+		},
 		navigationFile: path.join(buildDir, 'content', 'navigation.json'),
 		markdownExtension: 'md',
 		workPoolSize: 10,
 		origin: '',
 		tokenAssets: {},
+		styles: {},
+		scripts: {},
 	});
 });
 
 test('getConfig() should parse, validate and return a valid config object using custom relative values', async (t) => {
 	const buildDir = path.join(path.sep, 'example')
 	let config = await getConfig(buildDir, path.join(configsPath, 'valid-relative-config.json'));
-	config = await validateConfig(config, buildDir);
+	config = await validateConfig(config, configsPath);
 	t.deepEqual(config, {
-		contentPath: path.join(buildDir, 'custom-content-path'),
-		outputPath: path.join(buildDir, 'custom-output-path'),
-		themePath: path.join(buildDir, 'custom-theme'),
+		contentPath: path.join(configsPath, 'custom-content-path'),
+		outputPath: path.join(configsPath, 'custom-output-path'),
 		staticPath: './custom-static/',
-		navigationFile: path.join(buildDir, 'custom-nav-path', 'nav.json'),
+		navigationFile: path.join(configsPath, 'custom-nav-path', 'nav.json'),
 		markdownExtension: 'markdown',
 		workPoolSize: 20,
 		origin: "https://example.com",
+		theme: {
+			elements: './elements/elements.json5',
+      root: '/home/matt/Projects/Code/hopin-static-site-gen/test/static/themes/valid-relative',
+		},
 		tokenAssets: {
 			h1: {
 				styles: {
-					inline: [path.join(buildDir, '..', 'projects', 'valid-project', 'theme', 'static', 'styles', 'inline.css')],
+					inline: [path.join(configsPath, '..', 'themes', 'valid-relative', 'elements', 'h1', 'inline.css')],
 					sync: ['/styles/sync.css'],
 					async: ['/styles/async.css'],
-				}
+				},
+				scripts: {},
 			},
 		},
+		styles: {},
+		scripts: {},
 	});
 });

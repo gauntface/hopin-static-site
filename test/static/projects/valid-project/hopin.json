@@ -1,3 +1,5 @@
 {
-    "themePath": "./theme/",
+    "theme": {
+        "root": "./theme/",
+    },
 }

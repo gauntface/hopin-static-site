@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as json5 from 'json5';
 import * as matter from 'gray-matter';
 
-import { Config } from './config';
+import { InternalConfig } from './config';
 import { logger } from '../utils/logger';
 
 type PageInfo = {
@@ -74,7 +74,7 @@ async function getNavNode(pageIDs: {[id: string]: NavNode}, contentPath: string,
     return navNode;
 }
 
-export async function getNavTree(config: Config): Promise<{[id: string]: NavNode[]}> {
+export async function getNavTree(config: InternalConfig): Promise<{[id: string]: NavNode[]}> {
     if (!config.navigationFile) {
         return {};
     }

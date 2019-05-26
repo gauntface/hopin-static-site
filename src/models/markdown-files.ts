@@ -1,8 +1,8 @@
 import * as fs from 'fs-extra';
 import {glob} from '../utils/glob-promise';
-import {Config} from './config';
+import {InternalConfig} from './config';
 
-export async function getMarkdownFiles(config: Config): Promise<string[]> {
+export async function getMarkdownFiles(config: InternalConfig): Promise<string[]> {
   try {
     await fs.access(config.contentPath);
   } catch (err) {

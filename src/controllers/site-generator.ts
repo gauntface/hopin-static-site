@@ -2,13 +2,13 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 
 import { logger } from '../utils/logger';
-import {Config} from '../models/config';
+import {InternalConfig} from '../models/config';
 import {getMarkdownFiles} from '../models/markdown-files';
 import {WorkerPool} from './worker-pool';
 
 
 export class SiteGenerator {
-  async build(buildDir: string, config: Config) {
+  async build(buildDir: string, config: InternalConfig, variables: {}) {
     logger.log('🔧 Config......');
     logger.log(`    🏗️ Building In : ${path.relative(process.cwd(), buildDir)}`);
     logger.log(`    📓 Content     : ${path.relative(buildDir, config.contentPath)}`);
@@ -19,7 +19,7 @@ export class SiteGenerator {
     logger.log(`🔍 Found ${mdFiles.length} markdown files.`);
 
     // Worker Pool Start
-    const workerPool = new WorkerPool(config, mdFiles);
+    const workerPool = new WorkerPool(config, variables, mdFiles);
     const results = await workerPool.start(path.join(__dirname, 'file-processor.js'));
     const errors = [];
     for (const key of Object.keys(results)) {
@@ -58,29 +58,31 @@ ${
     await fs.writeFile(path.join(config.outputPath, 'sitemap.xml'), sitemapString);
 
     // Copy over static/ files from theme
-    const themeStatic = path.join(config.themePath, 'static');
-    let staticExists = false;
-    try {
-      await fs.access(themeStatic);
-      staticExists = true;
-    } catch (err) {
-      logger.debug('No <theme>/static/ directory found in theme.', err);
-    }
+    if (config.theme && config.theme.assets && config.theme.assets.dir) {
+      const themeAssets = config.theme.assets.dir;
+      let staticExists = false;
+      try {
+        await fs.access(themeAssets);
+        staticExists = true;
+      } catch (err) {
+        logger.debug('No <theme.assets.dir> directory found in theme.', err);
+      }
 
-    if (staticExists) {
-      await fs.copy(themeStatic, config.outputPath);
-    }
+      if (staticExists) {
+        await fs.copy(themeAssets, path.join(config.outputPath, config.theme.assets.outputdir));
+      }
 
-    staticExists = false;
-    try {
-      await fs.access(config.staticPath);
-      staticExists = true;
-    } catch (err) {
-      logger.debug('No static/ directory found in theme.', err);
-    }
+      staticExists = false;
+      try {
+        await fs.access(config.staticPath);
+        staticExists = true;
+      } catch (err) {
+        logger.debug('No static/ directory found in theme.', err);
+      }
 
-    if (staticExists) {
-      await fs.copy(config.staticPath, config.outputPath);
+      if (staticExists) {
+        await fs.copy(config.staticPath, config.outputPath);
+      }
     }
   }
 }
