@@ -31,7 +31,7 @@
     "@types/json5": "0.0.30",
     "@types/marked": "0.6.5",
     "@types/meow": "5.0.0",
-    "ava": "1.4.1",
+    "ava": "2.1.0",
     "coveralls": "3.0.4",
     "gulp": "4.0.2",
     "nyc": "14.1.1",
