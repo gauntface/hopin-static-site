@@ -1,0 +1,16 @@
+[
+  {
+    "tag": "h1",
+    "styles": {
+      "inline": [
+        "./h1/inline.css",
+      ],
+      "sync": [
+        "/styles/sync.css",
+      ],
+      "async": [
+        "/styles/async.css",
+      ],
+    },
+  },
+]
