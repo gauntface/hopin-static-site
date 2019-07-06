@@ -76,3 +76,43 @@ document.head.appendChild(lT);
 </script>
 </html>`);
 });
+
+test('file-processor.start() should render iframe', async (t) => {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'file-processor-test'));
+    const inputPath = path.join(contentFilesPath, 'iframe.md');
+    const msg = await start(['', '', inputPath], {
+        contentPath: contentFilesPath,
+        outputPath: tmpDir,
+        theme: {
+            root: path.join(projectFilePath, 'theme'),
+        },
+        tokenAssets: {},
+    }, {});
+    t.falsy(msg.error);
+    t.deepEqual(Object.keys(msg), ['result'])
+    t.deepEqual(msg.result, {
+        inputPath: inputPath,
+        outputPath: path.join(tmpDir, 'iframe.html'),
+    });
+    const buffer = await fs.readFile(msg.result.outputPath);
+    t.deepEqual(buffer.toString(), `<html class="default">
+<style>.inline{}</style>
+<link rel="stylesheet" type="text/css" href="/styles/sync.css" />
+<div class="__hopin__u-ratio-container"><div class="__hopin__u-ratio-container__wrapper"><iframe data-src="https://www.gauntface.com" loading="lazy"></iframe></div></div>
+<script>console.log('inline');</script>
+<script src="/scripts/sync.js"></script>
+<script src="/scripts/async.js" async defer></script>
+<script src="/__hopin__/data-src.js" async defer></script>
+<script>
+window.addEventListener('load', function() {
+var __hopin_async_styles = ['/styles/async.css'];
+for(var i = 0; i < __hopin_async_styles.length; i++) {
+var lT = document.createElement('link');
+lT.rel = 'stylesheet';
+lT.href = __hopin_async_styles[i];
+document.head.appendChild(lT);
+}
+});
+</script>
+</html>`);
+});

@@ -16,6 +16,15 @@ import {NavNode} from '../models/nav-tree';
 async function run(inputPath: string, config: InternalConfig, variables: {}, navigation: {[id: string]: NavNode[]}): Promise<Message> {
   // TODO: Check files exist first
   try {
+    const relativePath = path.relative(config.contentPath, inputPath);
+    const relPathPieces = path.parse(relativePath);
+    delete relPathPieces.base;
+    // replace .md with .html    
+    relPathPieces.ext = '.html';
+    
+    const outputPath = path.join(config.outputPath, path.format(relPathPieces));
+    await fs.mkdirp(path.dirname(outputPath));
+    
     const compTmpl = await createComponentTemplateFromFile(inputPath);
     // Render the original page and run it through the markdown parser
     const compBundle = await compTmpl.render(
@@ -29,7 +38,14 @@ async function run(inputPath: string, config: InternalConfig, variables: {}, nav
         staticDir: config.staticPath,
     });
     
-    compBundle.renderedTemplate = await standardizeHTML(compBundle.renderedTemplate, config.staticPath);
+    const {html, asyncScripts} = await standardizeHTML(compBundle.renderedTemplate, config.staticPath);
+    compBundle.renderedTemplate = html;
+    for (const a of asyncScripts) {
+      const assetsDir = path.join(config.outputPath, '__hopin__');
+      await fs.mkdirp(assetsDir);
+      await fs.copyFile(a, path.join(assetsDir, path.basename(a)));
+      compBundle.scripts.async.add(`/__hopin__/${path.basename(a)}`, `/__hopin__/${path.basename(a)}`);
+    }
 
     // tslint:disable-next-line
     const yaml = compTmpl.yaml as {
@@ -163,15 +179,6 @@ async function run(inputPath: string, config: InternalConfig, variables: {}, nav
     });
 
 
-    const relativePath = path.relative(config.contentPath, inputPath);
-
-    // replace .md with .html
-    const relPathPieces = path.parse(relativePath);
-    delete relPathPieces.base;
-    relPathPieces.ext = '.html';
-
-    const outputPath = path.join(config.outputPath, path.format(relPathPieces));
-    await fs.mkdirp(path.dirname(outputPath));
     await fs.writeFile(outputPath, wrappedHTML);
 
     return {
@@ -235,7 +242,7 @@ function getHTMLTokensFromNode(node: Node): string[] {
   return tags;
 }
 
-async function standardizeHTML(html: string, staticDir: string): Promise<string> {
+async function standardizeHTML(html: string, staticDir: string): Promise<{html: string, asyncScripts: string[]}> {
   const result = parse(html, {
     script: true,
     style: true,
@@ -259,7 +266,13 @@ async function standardizeHTML(html: string, staticDir: string): Promise<string>
   // Set src to data-src
   await cleanVideos(parsedHTML);
 
-  return parsedHTML.toString();
+  const newHTML = parsedHTML.toString();
+  const asyncScripts: string[] = [];
+  if (newHTML.indexOf('data-src=') !== -1) {
+    asyncScripts.push(path.join(__dirname, '..', 'web-assets', 'data-src.js'));
+  }
+
+  return {html: newHTML, asyncScripts};
 }
 
 function cleanIframes(parsedHTML: HTMLElement) {

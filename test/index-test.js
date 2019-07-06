@@ -14,7 +14,9 @@ test('buildSiteFromFile() should successfully build a site', async (t) => {
 	const buildFiles = await fs.readdir(projectBuildPath);
 	
 	t.deepEqual(buildFiles, [
+		'__hopin__',
 		'directory', 
+		'iframe.html',
 		'index.html', 
 		'page.html', 
 		// 'scripts', 

@@ -34,6 +34,7 @@ test('getMarkdownFiles() should return expected files valid directory', async (t
     markdownExtension: 'md',
   });
   t.deepEqual(files.sort(), [
+    path.join(contentPath, 'iframe.md'),
     path.join(contentPath, 'index.md'),
     path.join(contentPath, 'page.md'),
     path.join(contentPath, 'directory', 'nested-page.md'),
