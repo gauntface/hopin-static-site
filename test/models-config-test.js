@@ -89,7 +89,7 @@ test('getConfig() should parse, validate and return a valid config object using 
 		origin: "https://example.com",
 		theme: {
 			elements: './elements/elements.json5',
-      root: '/home/matt/Projects/Code/hopin-static-site-gen/test/static/themes/valid-relative',
+      root: path.join(__dirname, 'static/themes/valid-relative'),
 		},
 		tokenAssets: {
 			h1: {
