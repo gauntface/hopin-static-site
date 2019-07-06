@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "ava": "nyc ava ./test/**/*-test.js --serial --verbose",
+    "ava": "nyc ava --serial --verbose",
     "build": "gulp build",
     "docs": "typedoc ./src/**/*.ts --out ./docs/ --mode file --excludePrivate --excludeProtected --module umd --ignoreCompilerErrors",
     "lint": "tslint 'src/**/*.ts'",
@@ -26,20 +26,21 @@
       "test/**/*"
     ]
   },
+  "ava": {
+    "files": [
+      "./test/**/*-test.js"
+    ]
+  },
   "devDependencies": {
     "@hopin/wbt-ts-node": "0.0.20",
-<<<<<<< HEAD
     "@types/fs-extra": "8.0.0",
-=======
-    "@types/fs-extra": "7.0.0",
->>>>>>> 02537a0... Adding logic to use theme files
     "@types/glob": "7.1.1",
     "@types/handlebars": "4.1.0",
     "@types/image-size": "^0.7.0",
     "@types/json5": "0.0.30",
     "@types/marked": "0.6.5",
     "@types/meow": "5.0.0",
-    "ava": "1.4.1",
+    "ava": "2.1.0",
     "coveralls": "3.0.4",
     "gulp": "4.0.2",
     "nyc": "14.1.1",
