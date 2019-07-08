@@ -53,8 +53,20 @@ async function run(inputPath: string, config: InternalConfig, variables: {}, nav
       layout?: string
     };
 
-    if (yaml.layout) {
-      let layoutPath = yaml.layout;
+    let layoutGroup: string | null = null;
+    const prefixedRelPath = "/" + relativePath;
+    for (const l of Object.keys(config.layouts)) {
+      if (prefixedRelPath.indexOf(l) === 0) {
+        layoutGroup = config.layouts[l];
+      }
+    }
+
+    if (layoutGroup) {
+      layoutGroup = config.theme.layouts[layoutGroup].path;
+    }
+
+    if (yaml.layout || layoutGroup) {
+      let layoutPath = yaml.layout || layoutGroup;
       if (!path.isAbsolute(layoutPath)) {
         layoutPath = path.resolve(path.dirname(inputPath), layoutPath);
       }

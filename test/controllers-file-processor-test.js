@@ -39,6 +39,7 @@ test('file-processor.start() should render file contents for valid file', async 
                 },
             }
         },
+        layouts: {},
     }, {});
     t.falsy(msg.error);
     t.deepEqual(Object.keys(msg), ['result'])
@@ -87,6 +88,7 @@ test('file-processor.start() should render iframe', async (t) => {
             root: path.join(projectFilePath, 'theme'),
         },
         tokenAssets: {},
+        layouts: {},
     }, {});
     t.falsy(msg.error);
     t.deepEqual(Object.keys(msg), ['result'])

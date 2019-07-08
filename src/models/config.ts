@@ -22,11 +22,15 @@ export type Config = {
   contentPath: string
   outputPath: string
   themePath: string
+  themePackage?: string
   staticPath: string
   navigationFile: string
   markdownExtension: string
   workPoolSize: number
   origin: string
+  layouts: {
+    [key: string]: string
+  },
   styles: Style,
   scripts: Script,
   tokenAssets: {
@@ -48,6 +52,9 @@ export type InternalConfig = {
   contentPath: string
   outputPath: string
   theme: Theme | null
+  layouts: {
+    [key: string]: string
+  }
   staticPath: string
   navigationFile: string
   markdownExtension: string
@@ -58,11 +65,26 @@ export type InternalConfig = {
   scripts: Script
 };
 
-export interface Theme {
-  root: string;
+export interface ThemeInput {
+  layouts: string;
+  assets: Assets;
   elements: string;
   styleguide: string;
-  assets: Assets;
+}
+
+export interface Theme {
+  root: string;
+  layouts?: {
+    [key: string]: Layout;
+  };
+  elements?: string;
+  styleguide?: string;
+  assets?: Assets;
+}
+
+export interface Layout {
+  path: string;
+  id: string;
 }
 
 export interface Elements {
@@ -91,6 +113,7 @@ function getDefaults(buildDir: string): Config {
     markdownExtension: 'md',
     workPoolSize: 10,
     origin: '',
+    layouts: {},
     tokenAssets: {},
     styles: {},
     scripts: {},
@@ -156,8 +179,8 @@ export async function validateConfig(config: any, relativePath: string): Promise
 }
 
 async function convertConfig(cfg: Config): Promise<InternalConfig> {
-  const theme = await getThemeFile(cfg.themePath);
-  const elements = await getElementsFile(cfg.themePath, theme);
+  const theme = await getThemeFile(cfg);
+  const elements = await getElementsFile(theme);
   const tokens: TokenAssets = {};
   if (elements) {
     for (const t of elements.tags) {
@@ -180,11 +203,21 @@ async function convertConfig(cfg: Config): Promise<InternalConfig> {
     tokenAssets: tokens,
     styles: cfg.styles,
     scripts: cfg.scripts,
+    layouts: cfg.layouts,
   };
 }
 
-async function getThemeFile(dir: string): Promise<Theme|null> {
-  const themeFile = path.join(dir, THEME_FILE);
+async function getThemeFile(config: Config): Promise<Theme|null> {
+  let themeFile = path.join(config.themePath, THEME_FILE);
+  if (config.themePackage) {
+    try {
+      themeFile = require.resolve(path.join(config.themePackage, THEME_FILE));
+    } catch (err) {
+      logger.error(`Failed to lookup theme package ${config.themePackage}:`, err);
+      throw new Error(`Failed to lookup theme package ${config.themePackage}: ${err}`);
+    }
+  }
+
   try {
       const s = await fs.stat(themeFile);
       if (!s) {
@@ -192,32 +225,64 @@ async function getThemeFile(dir: string): Promise<Theme|null> {
       }
   } catch (e) {
       logger.error(`Unable to find the theme ${themeFile}`, e);
-      return null;
+      throw new Error(`Unable to find the theme ${themeFile}: ${e}`);
   }
-  
+
   try {
-      const themeBuffer = await fs.readFile(themeFile);
-      const theme = json5.parse(themeBuffer.toString()) as Theme;
-      theme.root = path.dirname(themeFile);
-      if (theme.assets && theme.assets.dir) {
-        if (!path.isAbsolute(theme.assets.dir)) {
-          theme.assets.dir = path.join(dir, theme.assets.dir);
-        }
+    const themeBuffer = await fs.readFile(themeFile);
+    const theme = json5.parse(themeBuffer.toString()) as ThemeInput;
+    
+    const parsedTheme: Theme = {
+      root: path.dirname(themeFile),
+    };
+    if (theme.elements) {
+      parsedTheme.elements = theme.elements;
+    }
+    if (theme.styleguide) {
+      parsedTheme.styleguide = theme.styleguide;
+    }
+
+    if (theme.assets && theme.assets.dir) {
+      parsedTheme.assets = theme.assets;
+      if (!path.isAbsolute(parsedTheme.assets.dir)) {
+        parsedTheme.assets.dir = path.join(path.dirname(themeFile), parsedTheme.assets.dir);
       }
-      return theme;
+    }
+    if (theme.layouts) {
+      parsedTheme.layouts = {};
+      let layoutPath = theme.layouts;
+      if (!path.isAbsolute(layoutPath)) {
+        layoutPath = path.join(path.dirname(themeFile), layoutPath);
+      }
+      const layoutDir = path.dirname(layoutPath);
+      const layoutsBuffer = await fs.readFile(layoutPath);
+      const layouts = json5.parse(layoutsBuffer.toString()) as Layout[];
+      for (let i = 0; i < layouts.length; i++) {
+        let layoutPath = layouts[i].path;
+        if (!path.isAbsolute(layoutPath)) {
+          layoutPath = path.join(layoutDir, layoutPath);
+        }
+        parsedTheme.layouts[layouts[i].id] = {
+          id: layouts[i].id,
+          path: layoutPath,
+        };
+      }
+    }
+    return parsedTheme;
   } catch (err) {
-      logger.error(`Unable to read and parse the theme:`, err);
+      logger.error(`Unable to read and parse the theme ${themeFile}:`, err);
+      throw new Error(`Unable to read and parse the theme ${themeFile}: ${err}`);
   }
   
   return null;
 }
 
-async function getElementsFile(dir: string, theme: Theme): Promise<Elements|null> {
+async function getElementsFile(theme: Theme): Promise<Elements|null> {
   if (!theme || !theme.elements) {
     return null;
   }
 
-  const elementsFile = path.join(dir, theme.elements);
+  const elementsFile = path.join(theme.root, theme.elements);
   const elementsDir = path.dirname(elementsFile);
   try {
       const s = await fs.stat(elementsFile);
