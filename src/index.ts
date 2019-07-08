@@ -15,7 +15,7 @@ export async function buildSiteFromFile(configPath: any) {
   // TODO: Type checking on config path
   if (!configPath) {
     try {
-      const defaultPath = path.resolve(buildDir, 'hopin.json');
+      const defaultPath = path.resolve(buildDir, 'hopin.json5');
       await fs.access(defaultPath);
       configPath = defaultPath;
     } catch (err) {
@@ -25,7 +25,7 @@ export async function buildSiteFromFile(configPath: any) {
     const stats = await fs.lstat(configPath);
     if (stats.isDirectory()) {
       buildDir = configPath;
-      configPath = path.resolve(configPath, 'hopin.json');
+      configPath = path.resolve(configPath, 'hopin.json5');
       try {
         await fs.access(configPath);
       } catch(err) {
@@ -37,11 +37,17 @@ export async function buildSiteFromFile(configPath: any) {
   }
 
   const config = await getConfig(buildDir, configPath);
-
   return buildSite(buildDir, config, {});
 }
 
 export async function buildSite(relativePath: string, userConfig: {}, variables: {}) {
+  if (!relativePath) {
+    throw new Error('You must provide a path to the directory containing the sites content to buildSite(<directory>: string).');
+  }
+  if (!userConfig) {
+    userConfig = {};
+  }
+
   const config = await validateConfig(userConfig, relativePath);
   const siteGen = new SiteGenerator();
   try {
