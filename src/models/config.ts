@@ -74,12 +74,12 @@ export interface ThemeInput {
 
 export interface Theme {
   root: string;
-  layouts: {
+  layouts?: {
     [key: string]: Layout;
   };
-  elements: string;
-  styleguide: string;
-  assets: Assets;
+  elements?: string;
+  styleguide?: string;
+  assets?: Assets;
 }
 
 export interface Layout {
@@ -208,12 +208,12 @@ async function convertConfig(cfg: Config): Promise<InternalConfig> {
 }
 
 async function getThemeFile(config: Config): Promise<Theme|null> {
-  let themeFile = path.join(config.themePath);
+  let themeFile = path.join(config.themePath, THEME_FILE);
   if (config.themePackage) {
     try {
       themeFile = require.resolve(path.join(config.themePackage, THEME_FILE));
     } catch (err) {
-      logger.error(`Failed to lookup theme package ${config.themePackage}:`, err)
+      logger.error(`Failed to lookup theme package ${config.themePackage}:`, err);
       throw new Error(`Failed to lookup theme package ${config.themePackage}: ${err}`);
     }
   }
@@ -233,18 +233,23 @@ async function getThemeFile(config: Config): Promise<Theme|null> {
     const theme = json5.parse(themeBuffer.toString()) as ThemeInput;
     
     const parsedTheme: Theme = {
-      layouts: {},
-      assets: theme.assets,
-      styleguide: theme.styleguide,
-      elements: theme.elements,
       root: path.dirname(themeFile),
     };
-    if (parsedTheme.assets && parsedTheme.assets.dir) {
+    if (theme.elements) {
+      parsedTheme.elements = theme.elements;
+    }
+    if (theme.styleguide) {
+      parsedTheme.styleguide = theme.styleguide;
+    }
+
+    if (theme.assets && theme.assets.dir) {
+      parsedTheme.assets = theme.assets;
       if (!path.isAbsolute(parsedTheme.assets.dir)) {
         parsedTheme.assets.dir = path.join(path.dirname(themeFile), parsedTheme.assets.dir);
       }
     }
     if (theme.layouts) {
+      parsedTheme.layouts = {};
       let layoutPath = theme.layouts;
       if (!path.isAbsolute(layoutPath)) {
         layoutPath = path.join(path.dirname(themeFile), layoutPath);

@@ -50,6 +50,7 @@ test('getConfig() should handle a null config path and return a valid config obj
 		tokenAssets: {},
 		styles: {},
 		scripts: {},
+		layouts: {},
 	});
 });
 
@@ -72,6 +73,7 @@ test('getConfig() should parse, validate and return a valid config object using 
 		tokenAssets: {},
 		styles: {},
 		scripts: {},
+		layouts: {},
 	});
 });
 
@@ -103,5 +105,6 @@ test('getConfig() should parse, validate and return a valid config object using 
 		},
 		styles: {},
 		scripts: {},
+		layouts: {},
 	});
 });
