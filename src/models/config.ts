@@ -254,8 +254,6 @@ async function getThemeFile(config: Config): Promise<Theme|null> {
       if (!path.isAbsolute(layoutPath)) {
         layoutPath = path.join(path.dirname(themeFile), layoutPath);
       }
-      console.log(`themeFile ===============> ${themeFile}`);
-      console.log(`layoutPath ===============> ${layoutPath}`);
       const layoutDir = path.dirname(layoutPath);
       const layoutsBuffer = await fs.readFile(layoutPath);
       const layouts = json5.parse(layoutsBuffer.toString()) as Layout[];
@@ -264,7 +262,6 @@ async function getThemeFile(config: Config): Promise<Theme|null> {
         if (!path.isAbsolute(layoutPath)) {
           layoutPath = path.join(layoutDir, layoutPath);
         }
-        console.log(`LAYOUT ID = ${layouts[i].id} PATH = ${layoutPath}`);
         parsedTheme.layouts[layouts[i].id] = {
           id: layouts[i].id,
           path: layoutPath,
