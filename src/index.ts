@@ -50,12 +50,6 @@ export async function buildSite(relativePath: string, userConfig: {}, variables:
 
   const config = await validateConfig(userConfig, relativePath);
   const siteGen = new SiteGenerator();
-  try {
-    await siteGen.build(relativePath, config, variables);
-    logger.log(`✔️ C'est fini.`);
-  } catch (err) {
-    logger.error('❌ Unable to build site.');
-    logger.error(err);
-    process.exit(1);
-  }
+  await siteGen.build(relativePath, config, variables);
+  logger.log(`✔️ C'est fini.`);
 }
