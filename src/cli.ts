@@ -2,6 +2,7 @@
 
 import * as meow from 'meow';
 import {buildSiteFromFile} from './index';
+import {logger} from './utils/logger';
 
 const cli = meow(`
 	Usage
@@ -17,4 +18,14 @@ const cli = meow(`
 	}
 });
 
-buildSiteFromFile(cli.flags.config);
+async function run() {
+	try {
+		await buildSiteFromFile(cli.flags.config);
+	} catch (err) {
+		logger.error('❌ Unable to build site.');
+		logger.error(err);
+		process.exit(1);
+	}
+}
+
+run();
