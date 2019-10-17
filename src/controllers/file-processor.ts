@@ -366,7 +366,15 @@ async function cleanPictures(parsedHTML: HTMLElement, staticDir: string) {
       picReplacement = createAspectRatioElement(picReplacement);
     }
 
-    replaceElement(picElement, picReplacement, parsedHTML);
+    let elementToReplace = picElement;
+    if (picElement.parentNode.nodeType === NodeType.ELEMENT_NODE) {
+      const parent = picElement.parentNode as HTMLElement;
+      // Paragraphs cannot contain a div
+      if (parent.tagName === 'p') {
+        elementToReplace = picElement.parentNode as HTMLElement;
+      }
+    }
+    replaceElement(elementToReplace, picReplacement, parsedHTML);
   }
 }
 
