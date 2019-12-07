@@ -58,7 +58,7 @@
     "htmlparser2": "^4.0.0",
     "image-size": "^0.7.4",
     "json5": "^2.0.1",
-    "meow": "^5.0.0",
+    "meow": "^6.0.0",
     "node-html-parser": "^1.1.16",
     "parse5": "^5.1.0"
   },
