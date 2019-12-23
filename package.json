@@ -45,7 +45,7 @@
     "coveralls": "3.0.9",
     "gulp": "4.0.2",
     "nyc": "15.0.0",
-    "tslint": "5.20.0"
+    "tslint": "5.20.1"
   },
   "dependencies": {
     "@hopin/logger": "^2.0.0",
