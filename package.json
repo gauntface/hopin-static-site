@@ -51,7 +51,7 @@
     "@hopin/logger": "^2.0.0",
     "@hopin/markdown": "1.0.0",
     "@hopin/render": "5.0.0",
-    "chalk": "^2.4.1",
+    "chalk": "^4.0.0",
     "fs-extra": "^9.0.0",
     "glob": "^7.1.2",
     "gray-matter": "^4.0.1",
