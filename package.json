@@ -42,7 +42,7 @@
     "@types/marked": "0.7.4",
     "@types/meow": "5.0.0",
     "ava": "2.4.0",
-    "coveralls": "3.0.13",
+    "coveralls": "3.0.14",
     "gulp": "4.0.2",
     "nyc": "15.0.1",
     "tslint": "6.1.1"
