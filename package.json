@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@hopin/wbt-ts-browser": "0.0.102",
-    "@hopin/wbt-ts-node": "0.0.102",
+    "@hopin/wbt-ts-node": "0.0.103",
     "@types/fs-extra": "8.1.0",
     "@types/glob": "7.1.1",
     "@types/handlebars": "4.1.0",
